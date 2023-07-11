@@ -1,0 +1,31 @@
+/
+bsp/
+.bsp/
+target/
+/.idea/
+/tags
+/src/main/resources/application.conf
+
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/src/main/front/node_modules
+/src/main/front/.pnp
+/src/main/front/**/.pnp.js
+
+# testing
+/src/main/front/coverage
+
+# production
+/src/main/front/build
+
+# misc
+/src/main/front/**/.DS_Store
+/src/main/front/**/.env.local
+/src/main/front/**/.env.development.local
+/src/main/front/**/.env.test.local
+/src/main/front/**/.env.production.local
+
+/src/main/front/**/npm-debug.log*
+/src/main/front/**/yarn-debug.log*
+/src/main/front/**/yarn-error.log*
