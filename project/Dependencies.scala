@@ -8,4 +8,8 @@ object Dependencies {
   lazy val fs2 = "co.fs2" %% "fs2-core" % "3.7.0"
   lazy val `fs2-io` = "co.fs2" %% "fs2-io" % "3.7.0"
   lazy val `fs2-data-csv` = "org.gnieh" %% "fs2-data-csv" % "1.7.1"
+  lazy val `sqlite-jdbc` = "org.xerial" % "sqlite-jdbc" % "3.42.0.0"
+  lazy val anorm = "org.playframework.anorm" %% "anorm" % "2.7.0"
+  lazy val `macwire-macros` = "com.softwaremill.macwire" %% "macros" % "2.5.8"
+  lazy val `liquibase` = "org.liquibase" % "liquibase-core" % "4.23.0"
 }

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+        http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
+    
+    <changeSet id="6d98840c-9b24-4f11-add6-e67bf7d52287" author="Orion">
+        <createTable tableName="bank">
+            <column name="bic" type="text">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="designation" type="text">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+        <createTable tableName="account">
+            <column name="bank" type="text">
+                <constraints nullable="false" />
+            </column>
+            <column name="country_code" type="text">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="check_digits" type="text">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="bban" type="text">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="domiciliation" type="text">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+        <createTable tableName="holder">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="text">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+        <createTable tableName="single_account_holder">
+            <column name="account_country_code" type="text">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="account_check_digits" type="text">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="account_bban" type="text">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+        </createTable>
+        <createTable tableName="multiple_account_holder">
+            <column name="account_country_code" type="text">
+                <constraints nullable="false" />
+            </column>
+            <column name="account_check_digits" type="text">
+                <constraints nullable="false" />
+            </column>
+            <column name="account_bban" type="text">
+                <constraints nullable="false" />
+            </column>
+            <column name="combination" type="text">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+        <createTable tableName="individual_holder_for_multiple_account_holder">
+            <column name="account_country_code" type="text">
+                <constraints nullable="false" />
+            </column>
+            <column name="account_check_digits" type="text">
+                <constraints nullable="false" />
+            </column>
+            <column name="account_bban" type="text">
+                <constraints nullable="false" />
+            </column>
+            <column name="holder" type="UUID">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

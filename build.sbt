@@ -14,8 +14,12 @@ lazy val root = (project in file("."))
       fs2,
       `fs2-io`,
       `fs2-data-csv`,
+      `sqlite-jdbc`,
+      anorm,
+      `macwire-macros` % Provided,
       scalatest % Test,
-      `cats-effect-testing-scalatest` % Test
+      `cats-effect-testing-scalatest` % Test,
+      `liquibase` % Test
     )
   )
 
