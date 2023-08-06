@@ -1,4 +1,4 @@
-package com.example.example.business
+package net.mindbuilt.finances.business
 
 import java.util.Locale.IsoCountryCode.PART1_ALPHA2
 import java.util.Locale.getISOCountries
@@ -9,7 +9,9 @@ case class Bic private(
   countryCode: String,
   locationCode: String,
   branchCode: String
-)
+) {
+  override def toString: String = s"${institutionCode}${countryCode}${locationCode}${branchCode}"
+}
 
 object Bic {
   def apply(institutionCode: String, countryCode: String, locationCode: String, branchCode: String = "XXX"): Try[Bic] =

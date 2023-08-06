@@ -1,4 +1,4 @@
-package com.example.example
+package net.mindbuilt.finances
 
 import scala.util.{Try, Success, Failure}
 

@@ -1,4 +1,4 @@
-package com.example.example.business
+package net.mindbuilt.finances.business
 
 import org.scalatest.TryValues
 import org.scalatest.freespec.AnyFreeSpecLike

@@ -1,4 +1,4 @@
-package com.example.example.business
+package net.mindbuilt.finances.business
 
 import java.util.Locale.IsoCountryCode.PART1_ALPHA2
 import java.util.Locale.getISOCountries

@@ -1,6 +1,6 @@
 package com.example.example.bank.sample
 
-import com.example.example.Cents
+import net.mindbuilt.finances.Cents
 
 import java.time.LocalDate
 

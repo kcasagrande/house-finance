@@ -1,4 +1,4 @@
-package com.example.example.business
+package net.mindbuilt.finances.business
 
 import java.time.YearMonth
 
@@ -12,10 +12,5 @@ case class Card(
 
 object Card {
   type Number = String
-  
-  sealed trait Type
-  object Type {
-    case object Visa extends Type
-    case object Mastercard extends Type
-  }
+  type Type = String
 }

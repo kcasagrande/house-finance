@@ -1,4 +1,4 @@
-package com.example.example.business
+package net.mindbuilt.finances.business
 
 case class Bank(
   bic: Bic,

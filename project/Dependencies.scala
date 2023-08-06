@@ -12,4 +12,11 @@ object Dependencies {
   lazy val anorm = "org.playframework.anorm" %% "anorm" % "2.7.0"
   lazy val `macwire-macros` = "com.softwaremill.macwire" %% "macros" % "2.5.8"
   lazy val `liquibase` = "org.liquibase" % "liquibase-core" % "4.23.0"
+  lazy val http4sVersion = "0.23.23"
+  lazy val `http4s-core` = "org.http4s" %% "http4s-core" % http4sVersion
+  lazy val `http4s-dsl` = "org.http4s" %% "http4s-dsl" % http4sVersion
+  lazy val `http4s-ember-server` = "org.http4s" %% "http4s-ember-server" % http4sVersion
+  lazy val `http4s-circe` = "org.http4s" %% "http4s-circe" % http4sVersion
+  lazy val `circe-literal` = "io.circe" %% "circe-literal" % "0.14.5"
+  lazy val pureconfig = "com.github.pureconfig" %% "pureconfig" % "0.17.4"
 }

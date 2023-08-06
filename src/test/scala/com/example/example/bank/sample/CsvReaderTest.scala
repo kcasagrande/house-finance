@@ -2,8 +2,8 @@ package com.example.example.bank.sample
 
 import cats.effect.IO
 import cats.effect.testing.scalatest.AsyncIOSpec
-import com.example.example.IntToCents
 import fs2.io.file.Path
+import net.mindbuilt.finances.IntToCents
 import org.scalatest.freespec.AsyncFreeSpecLike
 import org.scalatest.matchers.should.Matchers._
 

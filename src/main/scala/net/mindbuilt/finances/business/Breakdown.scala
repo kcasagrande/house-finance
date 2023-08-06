@@ -1,6 +1,6 @@
-package com.example.example.business
+package net.mindbuilt.finances.business
 
-import com.example.example.Cents
+import net.mindbuilt.finances.Cents
 
 case class Breakdown(
   operation: Operation.Id,

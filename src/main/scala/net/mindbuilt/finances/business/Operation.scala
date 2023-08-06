@@ -1,6 +1,4 @@
-package com.example.example.business
-
-import cats.effect.IO
+package net.mindbuilt.finances.business
 
 import java.time.LocalDate
 import java.util.UUID
@@ -19,6 +17,7 @@ object Operation {
   case class ByCard(
     override val id: UUID,
     val card: Card.Number,
+    val reference: String,
     override val label: String,
     override val operationDate: LocalDate,
     override val valueDate: LocalDate,
@@ -34,18 +33,7 @@ object Operation {
     override val valueDate: LocalDate,
     override val accountDate: LocalDate
   ) extends Operation
-  
-  case class ByTransfer(
-    override val id: UUID,
-    account: Iban,
-    reference: String,
-    override val label: String,
-    override val operationDate: LocalDate,
-    override val valueDate: LocalDate,
-    override val accountDate: LocalDate,
-    otherParty: Iban
-  ) extends Operation
-  
+
   case class ByDebit(
     override val id: UUID,
     account: Iban,
@@ -54,5 +42,16 @@ object Operation {
     override val operationDate: LocalDate,
     override val valueDate: LocalDate,
     override val accountDate: LocalDate
+  ) extends Operation
+
+  case class ByTransfer(
+    override val id: UUID,
+    account: Iban,
+    reference: String,
+    override val label: String,
+    override val operationDate: LocalDate,
+    override val valueDate: LocalDate,
+    override val accountDate: LocalDate,
+    otherParty: Option[Iban]
   ) extends Operation
 }

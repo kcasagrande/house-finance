@@ -1,6 +1,6 @@
-package com.example
+package net.mindbuilt
 
-package object example
+package object finances
 {
   case class Cents(value: Int) extends AnyVal
   implicit class IntToCents(value: Int) {

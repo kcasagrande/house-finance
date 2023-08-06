@@ -1,12 +1,12 @@
 package com.example.example.bank.sample
 
 import cats.effect._
-import com.example.example.{Cents, IntToCents}
 import fs2._
 import fs2.data.csv._
 import fs2.data.text._
 import fs2.io.file._
 import fs2.text.lines
+import net.mindbuilt.finances.{Cents, IntToCents}
 
 import java.nio.charset.Charset
 import java.time.LocalDate

@@ -18,23 +18,6 @@
                 <constraints nullable="false" />
             </column>
         </createTable>
-        <createTable tableName="account">
-            <column name="bank" type="text">
-                <constraints nullable="false" />
-            </column>
-            <column name="country_code" type="text">
-                <constraints primaryKey="true" nullable="false" />
-            </column>
-            <column name="check_digits" type="text">
-                <constraints primaryKey="true" nullable="false" />
-            </column>
-            <column name="bban" type="text">
-                <constraints primaryKey="true" nullable="false" />
-            </column>
-            <column name="domiciliation" type="text">
-                <constraints nullable="false" />
-            </column>
-        </createTable>
         <createTable tableName="holder">
             <column name="id" type="UUID">
                 <constraints primaryKey="true" nullable="false" />
@@ -43,44 +26,85 @@
                 <constraints nullable="false" />
             </column>
         </createTable>
-        <createTable tableName="single_account_holder">
-            <column name="account_country_code" type="text">
-                <constraints primaryKey="true" nullable="false" />
-            </column>
-            <column name="account_check_digits" type="text">
-                <constraints primaryKey="true" nullable="false" />
-            </column>
-            <column name="account_bban" type="text">
+        <sql>
+            CREATE TABLE "account"(
+                "bank" TEXT NOT NULL REFERENCES "bank"("bic") ON UPDATE CASCADE ON DELETE RESTRICT,
+                "country_code" TEXT NOT NULL,
+                "check_digits" TEXT NOT NULL,
+                "bban" TEXT NOT NULL,
+                "domiciliation" TEXT NOT NULL,
+                PRIMARY KEY (
+                    "country_code",
+                    "check_digits",
+                    "bban"
+                )
+            );
+        </sql>
+        <sql>
+            CREATE TABLE "single_account_holder"(
+                "account_country_code" TEXT NOT NULL,
+                "account_check_digits" TEXT NOT NULL,
+                "account_bban" TEXT NOT NULL,
+                "holder" UUID NOT NULL REFERENCES "holder"("id") ON UPDATE CASCADE ON DELETE CASCADE,
+                PRIMARY KEY (
+                    "account_country_code",
+                    "account_check_digits",
+                    "account_bban"
+                ),
+                FOREIGN KEY ("account_country_code", "account_check_digits", "account_bban")
+                    REFERENCES "account"("country_code", "check_digits", "bban")
+                    ON UPDATE CASCADE ON DELETE RESTRICT
+            );
+        </sql>
+        <sql>
+            CREATE TABLE "multiple_account_holder"(
+                "account_country_code" TEXT NOT NULL,
+                "account_check_digits" TEXT NOT NULL,
+                "account_bban" TEXT NOT NULL,
+                "combination" TEXT NOT NULL,
+                PRIMARY KEY (
+                    "account_country_code",
+                    "account_check_digits",
+                    "account_bban"
+                ),
+                FOREIGN KEY ("account_country_code", "account_check_digits", "account_bban")
+                REFERENCES "account"("country_code", "check_digits", "bban")
+                ON UPDATE CASCADE ON DELETE RESTRICT
+            );
+        </sql>
+        <sql>
+            CREATE TABLE "individual_holder_for_multiple_account_holder"(
+                "account_country_code" TEXT NOT NULL,
+                "account_check_digits" TEXT NOT NULL,
+                "account_bban" TEXT NOT NULL,
+                "holder" UUID NOT NULL REFERENCES "holder"("id") ON UPDATE CASCADE ON DELETE CASCADE,
+                PRIMARY KEY (
+                    "account_country_code",
+                    "account_check_digits",
+                    "account_bban",
+                    "holder"
+                ),
+                FOREIGN KEY ("account_country_code", "account_check_digits", "account_bban")
+                REFERENCES "account"("country_code", "check_digits", "bban")
+                ON UPDATE CASCADE ON DELETE RESTRICT
+            );
+        </sql>
+        <createTable tableName="card_type">
+            <column name="name" type="text">
                 <constraints primaryKey="true" nullable="false" />
             </column>
         </createTable>
-        <createTable tableName="multiple_account_holder">
-            <column name="account_country_code" type="text">
-                <constraints nullable="false" />
-            </column>
-            <column name="account_check_digits" type="text">
-                <constraints nullable="false" />
-            </column>
-            <column name="account_bban" type="text">
-                <constraints nullable="false" />
-            </column>
-            <column name="combination" type="text">
-                <constraints nullable="false" />
-            </column>
-        </createTable>
-        <createTable tableName="individual_holder_for_multiple_account_holder">
-            <column name="account_country_code" type="text">
-                <constraints nullable="false" />
-            </column>
-            <column name="account_check_digits" type="text">
-                <constraints nullable="false" />
-            </column>
-            <column name="account_bban" type="text">
-                <constraints nullable="false" />
-            </column>
-            <column name="holder" type="UUID">
-                <constraints nullable="false" />
-            </column>
-        </createTable>
+        <sql>
+            CREATE TABLE "card"(
+                "number" TEXT NOT NULL PRIMARY KEY,
+                "account_country_code" TEXT NOT NULL,
+                "account_check_digits" TEXT NOT NULL,
+                "account_bban" TEXT NOT NULL,
+                "holder" UUID NOT NULL REFERENCES "holder"("id") ON UPDATE CASCADE ON DELETE CASCADE,
+                FOREIGN KEY ("account_country_code", "account_check_digits", "account_bban")
+                REFERENCES "account"("country_code", "check_digits", "bban")
+                ON UPDATE CASCADE ON DELETE RESTRICT
+            );
+        </sql>
     </changeSet>
 </databaseChangeLog>
