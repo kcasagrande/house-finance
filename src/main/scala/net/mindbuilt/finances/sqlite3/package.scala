@@ -49,7 +49,16 @@ package object sqlite3
 
   def uuid(columnName: String): RowParser[UUID] = str(columnName).map(UUID.fromString)
   
-  def bic(columnName: String): RowParser[Try[Bic]] = str(columnName).map(string => Bic(string.substring(0, 4), string.substring(4, 6), string.substring(6, 8), string.substring(8)))
+  def bic(columnName: String): RowParser[Bic] = (row: Row) =>
+    for {
+      institutionCode <- str(columnName).map(_.substring(0, 4))(row)
+      countryCode <- str(columnName).map(_.substring(4, 6))(row)
+      locationCode <- str(columnName).map(_.substring(6, 8))(row)
+      branchCode <- str(columnName).map(_.substring(8))(row)
+      bic <- tryToSqlResult(Bic(institutionCode, countryCode, locationCode, branchCode))
+    } yield {
+      bic
+    }
   
   def localDate(columnName: String): RowParser[LocalDate] = (row: Row) => str(columnName).apply(row)
     .flatMap { string: String =>

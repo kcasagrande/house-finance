@@ -11,7 +11,6 @@ import net.mindbuilt.finances.sqlite3.AccountRepository.{account, ibanToNamedPar
 
 import java.sql.Connection
 import scala.language.implicitConversions
-import scala.util.Try
 
 class AccountRepository(implicit val database: Database)
   extends Port
@@ -43,8 +42,7 @@ class AccountRepository(implicit val database: Database)
         |  AND "bban"={bban}""".stripMargin,
       iban:_*
     )
-      .map(_.as[Option[Try[Account]]](account(holder).singleOpt))
-      .subflatMap(optionTryToEither)
+      .map(_.as[Option[Account]](account(holder).singleOpt))
   }
 
   private[this] def getHolder(iban: Iban)(implicit connection: Connection): EitherT[IO, Throwable, Option[Holder]] = {
@@ -227,16 +225,12 @@ object AccountRepository {
       case anythingElse => Error(SqlRequestError(new IllegalArgumentException(anythingElse + " is not a combination word")))
     }
   
-  def account(holder: Holder): RowParser[Try[Account]] = for {
-    bankTry <- bic("bank")
+  def account(holder: Holder): RowParser[Account] = for {
+    bank <- bic("bank")
     iban <- iban("country_code", "check_digits", "bban")
     domiciliation <- str("domiciliation")
   } yield {
-    for {
-      bank <- bankTry
-    } yield {
-      Account(bank, iban, domiciliation, holder)
-    }
+    Account(bank, iban, domiciliation, holder)
   }
 
 }
