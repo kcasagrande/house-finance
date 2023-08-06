@@ -13,6 +13,17 @@ import scala.language.implicitConversions
 class BankRepository(implicit database: Database)
   extends Port
 {
+  override def getAll: EitherT[IO, Throwable, Set[Bank]] =
+    withConnection { implicit connection: Connection =>
+      executeQueryWithEffect(
+        """SELECT
+          |  "bic",
+          |  "designation"
+          |FROM "bank"""".stripMargin
+      )
+        .map(_.as[Set[Bank]](bank.*.map(_.toSet)))
+    }
+  
   override def getByBic(bic: Bic): EitherT[IO, Throwable, Option[Bank]] = {
     withConnection { implicit connection: Connection =>
       executeQueryWithEffect(

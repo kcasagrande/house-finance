@@ -15,22 +15,43 @@ class BankRepositoryTest
     with EitherValues
 {
   "BankRepository" - {
-    "should save and then retrieve a bank" in {
+    "should save then retrieve a bank" in {
+      val bic1 = Bic("AGRI", "FR", "PP", "878").get
+      val bank1 = Bank(bic1, "CONDRIEU")
+      val bic2 = Bic("CCBP", "FR", "PP", "GRE").get
+      val bank2 = Bank(bic2, "BPAURA CONDRIEU")
       val actual = withDatabase { implicit database: Database =>
         val sut = new BankRepository()
         for {
-          bic1 <- EitherT.fromEither[IO](Bic("AGRI", "FR", "PP", "878").toEither)
-          bank1 = Bank(bic1, "CONDRIEU")
           _ <- sut.save(bank1)
-          bic2 <- EitherT.fromEither[IO](Bic("CCBP", "FR", "PP", "GRE").toEither)
-          bank2 = Bank(bic2, "BPAURA CONDRIEU")
           _ <- sut.save(bank2)
           retrievedBank <- sut.getByBic(bic1)
         } yield {
           retrievedBank
         }
       }
-      actual.value.asserting(_.value should contain(Bank(Bic("AGRI", "FR", "PP", "878").get, "CONDRIEU")))
+      actual.value.asserting(_.value should contain(bank1))
     }
+  }
+
+  "should save then retrieve all banks" in {
+    val bic1 = Bic("AGRI", "FR", "PP", "878").get
+    val bank1 = Bank(bic1, "CONDRIEU")
+    val bic2 = Bic("CCBP", "FR", "PP", "GRE").get
+    val bank2 = Bank(bic2, "BPAURA CONDRIEU")
+    val actual = withDatabase { implicit database: Database =>
+      val sut = new BankRepository()
+      for {
+        _ <- sut.save(bank1)
+        _ <- sut.save(bank2)
+        retrievedBanks <- sut.getAll
+      } yield {
+        retrievedBanks
+      }
+    }
+    actual.value.asserting(_.value should contain theSameElementsAs Seq(
+      bank1,
+      bank2
+    ))
   }
 }
