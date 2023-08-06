@@ -229,14 +229,11 @@ object AccountRepository {
   
   def account(holder: Holder): RowParser[Try[Account]] = for {
     bankTry <- bic("bank")
-    countryCode <- str("country_code")
-    checkDigits <- str("check_digits")
-    bban <- str("bban")
+    iban <- iban("country_code", "check_digits", "bban")
     domiciliation <- str("domiciliation")
   } yield {
     for {
       bank <- bankTry
-      iban <- Iban(countryCode, checkDigits, bban)
     } yield {
       Account(bank, iban, domiciliation, holder)
     }
