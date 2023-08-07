@@ -15,6 +15,16 @@ import scala.language.implicitConversions
 class AccountRepository(implicit val database: Database)
   extends Port
 {
+  override def getAll: EitherT[IO, Throwable, Set[Account]] =
+    withConnection { implicit connection: Connection =>
+      for {
+        holders <- getAllHolders
+        accounts <- getAllAccounts(holders)
+      } yield {
+        accounts
+      }
+    }
+  
   override def getByIban(iban: Iban): EitherT[IO, Throwable, Option[Account]] =
     withConnection { implicit connection: Connection =>
       for {
@@ -28,6 +38,20 @@ class AccountRepository(implicit val database: Database)
       }
     }
 
+  private[this] def getAllAccounts(holders: Map[Iban, Holder])(implicit connection: Connection): EitherT[IO, Throwable, Set[Account]] = {
+    executeQueryWithEffect(
+      """SELECT
+        |  "bank",
+        |  "country_code",
+        |  "check_digits",
+        |  "bban",
+        |  "domiciliation"
+        |FROM "account"
+        |""".stripMargin,
+    )
+      .map(_.as[Set[Account]](account(holders).*.map(_.toSet)))
+  }
+  
   private[this] def getAccount(iban: Iban, holder: Holder)(implicit connection: Connection): EitherT[IO, Throwable, Option[Account]] = {
     executeQueryWithEffect(
       """SELECT
@@ -45,6 +69,66 @@ class AccountRepository(implicit val database: Database)
       .map(_.as[Option[Account]](account(holder).singleOpt))
   }
 
+  private[this] def getAllHolders(implicit connection: Connection): EitherT[IO, Throwable, Map[Iban, Holder]] = {
+    for {
+      combinations <- executeQueryWithEffect(
+        """SELECT
+          |  "account_country_code",
+          |  "account_check_digits",
+          |  "account_bban",
+          |  "combination"
+          |FROM "multiple_account_holder"
+          |""".stripMargin
+      )
+        .map(_.as[Map[Iban, Combination]](
+          (iban("account_country_code", "account_check_digits", "account_bban")
+            ~ AccountRepository.combination("combination")
+            map { case iban ~ combination => (iban, combination) })
+            .*.map(_.toMap)
+        ))
+      multipleHolders <- executeQueryWithEffect(
+        """SELECT
+          |  "i"."account_country_code",
+          |  "i"."account_check_digits",
+          |  "i"."account_bban",
+          |  "h"."id",
+          |  "h"."name"
+          |FROM "individual_holder_for_multiple_account_holder" "i"
+          |INNER JOIN "holder" "h"
+          |ON "i"."holder"="h"."id"
+          |""".stripMargin
+      )
+        .map(_.as[Set[(Iban, Holder.Single)]](
+          (iban("account_country_code", "account_check_digits", "account_bban")
+            ~ singleHolder
+            map { case iban ~ holder => (iban, holder) })
+            .*.map(_.toSet)
+        ))
+      singleHolders <- executeQueryWithEffect(
+        """SELECT
+          |  "s"."account_country_code",
+          |  "s"."account_check_digits",
+          |  "s"."account_bban",
+          |  "h"."id",
+          |  "h"."name"
+          |FROM "single_account_holder" "s"
+          |INNER JOIN "holder" "h"
+          |ON "s"."holder"="h"."id"
+          |""".stripMargin
+      )
+        .map(_.as[Set[(Iban, Holder.Single)]](
+          (iban("account_country_code", "account_check_digits", "account_bban")
+            ~ singleHolder
+            map { case iban ~ holder => (iban, holder) })
+            .*.map(_.toSet)
+        ))
+    } yield {
+      combinations.map {
+        case (iban, combination) => iban -> combination.of(multipleHolders.filter(_._1 == iban).map(_._2))
+      } ++ singleHolders
+    }
+  }
+
   private[this] def getHolder(iban: Iban)(implicit connection: Connection): EitherT[IO, Throwable, Option[Holder]] = {
     executeQueryWithEffect(
       """SELECT
@@ -56,7 +140,7 @@ class AccountRepository(implicit val database: Database)
         .stripMargin,
       iban: _*
     )
-      .map(_.as(AccountRepository.combination.singleOpt))
+      .map(_.as(AccountRepository.combination("combination").singleOpt))
       .flatMap {
         case None => executeQueryWithEffect(
           """SELECT
@@ -218,10 +302,10 @@ object AccountRepository {
     Holder.Single(id, name)
   }
   
-  val combination: RowParser[Combination] = (row: Row) => str("combination").apply(row)
+  def combination(columnName: String): RowParser[Combination] = (row: Row) => str(columnName).apply(row)
     .flatMap {
-      case "AND" => anorm.Success(Combination.And)
-      case "OR" => anorm.Success(Combination.Or)
+      case Combination.And.separator => anorm.Success(Combination.And)
+      case Combination.Or.separator => anorm.Success(Combination.Or)
       case anythingElse => Error(SqlRequestError(new IllegalArgumentException(anythingElse + " is not a combination word")))
     }
   
@@ -231,6 +315,14 @@ object AccountRepository {
     domiciliation <- str("domiciliation")
   } yield {
     Account(bank, iban, domiciliation, holder)
+  }
+
+  def account(holders: Map[Iban, Holder]): RowParser[Account] = for {
+    bank <- bic("bank")
+    iban <- iban("country_code", "check_digits", "bban")
+    domiciliation <- str("domiciliation")
+  } yield {
+    Account(bank, iban, domiciliation, holders(iban))
   }
 
 }
