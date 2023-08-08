@@ -1,6 +1,7 @@
 package net.mindbuilt.finances.sqlite3
 
-import anorm.{BatchSql, NamedParameter}
+import anorm.NamedParameter
+import cats.effect.IO
 import net.mindbuilt.finances.business.Card
 import net.mindbuilt.finances.sqlite3.CardFixture._
 
@@ -8,16 +9,19 @@ import java.sql.Connection
 import scala.language.implicitConversions
 
 trait CardFixture { self: InMemoryDatabase =>
-  def withCards[T](firstCard: Card, otherCards: Card*)(test: Connection => T)(implicit connection: Connection): T = {
-    BatchSql(
-      """INSERT INTO `card`(`number`, `account_country_code`, `account_check_digits`, `account_bban`, `holder`, `expiration`, `type`)
-        |VALUES ({number}, {account_country_code}, {account_check_digits}, {account_bban}, {holder}, {expiration}, {type})"""
-        .stripMargin,
-      firstCard,
-      otherCards.map(cardToNamedParameters):_*
-    )
-      .execute()
-    test(connection)
+  def withCards[T](firstCard: Card, otherCards: Card*)
+    (test: Database => IO[T])
+    (implicit database: Database): IO[T] = {
+    withConnection { implicit connection: Connection =>
+      executeBatchWithEffect(
+        """INSERT INTO `card`(`number`, `account_country_code`, `account_check_digits`, `account_bban`, `holder`, `expiration`, `type`)
+          |VALUES ({number}, {account_country_code}, {account_check_digits}, {account_bban}, {holder}, {expiration}, {type})"""
+          .stripMargin,
+        cardToNamedParameters(firstCard),
+        otherCards.map(cardToNamedParameters): _*
+      )
+    }
+      .flatMap(_ => test(database))
   }
 }
 
@@ -30,6 +34,6 @@ object CardFixture {
       "account_bban" -> card.account.bban,
       "holder" -> card.holder.toString,
       "expiration" -> "%04d-%02d".format(card.expiration.getYear, card.expiration.getMonthValue),
-      "type" -> card.`type`.toString
+      "type" -> card.`type`
     )
 }

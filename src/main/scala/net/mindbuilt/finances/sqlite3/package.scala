@@ -1,7 +1,7 @@
 package net.mindbuilt.finances
 
 import anorm.SqlParser._
-import anorm.{BatchSql, NamedParameter, ParameterValue, Row, RowParser, SQL, SqlQueryResult, SqlRequestError, SqlResult}
+import anorm.{BatchSql, NamedParameter, ParameterValue, ResultSetParser, Row, RowParser, SQL, SqlQueryResult, SqlRequestError, SqlResult}
 import cats.data.EitherT
 import cats.effect.IO
 import cats.effect.kernel.Resource
@@ -94,4 +94,8 @@ package object sqlite3
   
   implicit def optionTryToEither[T](optionTry: Option[Try[T]]): Either[Throwable, Option[T]] =
     optionTry.map(_.map(Some(_))).getOrElse(Success(None)).toEither
+    
+  implicit class ExtendedRowParser[A](rowParser: RowParser[A]) {
+    def set: ResultSetParser[Set[A]] = rowParser.*.map(_.toSet)
+  }
 }

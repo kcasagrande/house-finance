@@ -21,7 +21,7 @@ class BankRepository(implicit database: Database)
           |  "designation"
           |FROM "bank"""".stripMargin
       )
-        .map(_.as[Set[Bank]](bank.*.map(_.toSet)))
+        .map(_.as[Set[Bank]](bank.set))
     }
   
   override def getByBic(bic: Bic): EitherT[IO, Throwable, Option[Bank]] = {

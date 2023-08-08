@@ -49,7 +49,7 @@ class AccountRepository(implicit val database: Database)
         |FROM "account"
         |""".stripMargin,
     )
-      .map(_.as[Set[Account]](account(holders).*.map(_.toSet)))
+      .map(_.as[Set[Account]](account(holders).set))
   }
   
   private[this] def getAccount(iban: Iban, holder: Holder)(implicit connection: Connection): EitherT[IO, Throwable, Option[Account]] = {
@@ -102,7 +102,7 @@ class AccountRepository(implicit val database: Database)
           (iban("account_country_code", "account_check_digits", "account_bban")
             ~ singleHolder
             map { case iban ~ holder => (iban, holder) })
-            .*.map(_.toSet)
+            .set
         ))
       singleHolders <- executeQueryWithEffect(
         """SELECT
@@ -120,7 +120,7 @@ class AccountRepository(implicit val database: Database)
           (iban("account_country_code", "account_check_digits", "account_bban")
             ~ singleHolder
             map { case iban ~ holder => (iban, holder) })
-            .*.map(_.toSet)
+            .set
         ))
     } yield {
       combinations.map {

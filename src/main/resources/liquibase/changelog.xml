@@ -101,6 +101,8 @@
                 "account_check_digits" TEXT NOT NULL,
                 "account_bban" TEXT NOT NULL,
                 "holder" UUID NOT NULL REFERENCES "holder"("id") ON UPDATE CASCADE ON DELETE CASCADE,
+                "expiration" TEXT NOT NULL,
+                "type" TEXT NOT NULL REFERENCES "card_type"("name") ON UPDATE CASCADE ON DELETE RESTRICT,
                 FOREIGN KEY ("account_country_code", "account_check_digits", "account_bban")
                 REFERENCES "account"("country_code", "check_digits", "bban")
                 ON UPDATE CASCADE ON DELETE RESTRICT
