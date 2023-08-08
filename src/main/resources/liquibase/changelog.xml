@@ -108,5 +108,67 @@
                 ON UPDATE CASCADE ON DELETE RESTRICT
             );
         </sql>
+        <sql>
+            CREATE TABLE "check_operation"(
+                "id" UUID NOT NULL PRIMARY KEY,
+                "account_country_code" TEXT NOT NULL,
+                "account_check_digits" TEXT NOT NULL,
+                "account_bban" TEXT NOT NULL,
+                "number" TEXT NOT NULL UNIQUE,
+                "label" TEXT NOT NULL,
+                "operation_date" TEXT NOT NULL,
+                "value_date" TEXT NOT NULL,
+                "account_date" TEXT NOT NULL,
+                FOREIGN KEY ("account_country_code", "account_check_digits", "account_bban")
+                REFERENCES "account"("country_code", "check_digits", "bban")
+                ON UPDATE CASCADE ON DELETE RESTRICT
+            );
+        </sql>
+        <sql>
+            CREATE TABLE "card_operation"(
+                "id" UUID NOT NULL PRIMARY KEY,
+                "card" TEXT NOT NULL REFERENCES "card"("number"),
+                "reference" TEXT,
+                "label" TEXT NOT NULL,
+                "operation_date" TEXT NOT NULL,
+                "value_date" TEXT NOT NULL,
+                "account_date" TEXT NOT NULL
+            );
+        </sql>
+        <sql>
+            CREATE TABLE "debit_operation"(
+                "id" UUID NOT NULL PRIMARY KEY,
+                "account_country_code" TEXT NOT NULL,
+                "account_check_digits" TEXT NOT NULL,
+                "account_bban" TEXT NOT NULL,
+                "reference" TEXT,
+                "label" TEXT NOT NULL,
+                "operation_date" TEXT NOT NULL,
+                "value_date" TEXT NOT NULL,
+                "account_date" TEXT NOT NULL,
+                FOREIGN KEY ("account_country_code", "account_check_digits", "account_bban")
+                REFERENCES "account"("country_code", "check_digits", "bban")
+                ON UPDATE CASCADE ON DELETE RESTRICT
+            );
+        </sql>
+        <sql>
+            CREATE TABLE "transfer_operation"(
+                "id" UUID NOT NULL PRIMARY KEY,
+                "account_country_code" TEXT NOT NULL,
+                "account_check_digits" TEXT NOT NULL,
+                "account_bban" TEXT NOT NULL,
+                "reference" TEXT,
+                "label" TEXT NOT NULL,
+                "operation_date" TEXT NOT NULL,
+                "value_date" TEXT NOT NULL,
+                "account_date" TEXT NOT NULL,
+                "other_party_country_code" TEXT NOT NULL,
+                "other_party_check_digits" TEXT NOT NULL,
+                "other_party_bban" TEXT NOT NULL,
+                FOREIGN KEY ("account_country_code", "account_check_digits", "account_bban")
+                REFERENCES "account"("country_code", "check_digits", "bban")
+                ON UPDATE CASCADE ON DELETE RESTRICT
+            );
+        </sql>
     </changeSet>
 </databaseChangeLog>
