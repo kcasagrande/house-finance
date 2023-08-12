@@ -14,4 +14,8 @@ object LocalInterval {
     } else {
       new LocalInterval(date2, date1)
     }
+    
+  implicit class LocalIntervalBoundary(boundary: LocalDate) {
+    def to(otherBoundary: LocalDate): LocalInterval = LocalInterval(boundary, otherBoundary)
+  }
 }

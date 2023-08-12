@@ -109,6 +109,18 @@
             );
         </sql>
         <sql>
+            CREATE TABLE "card_operation"(
+                "id" UUID NOT NULL PRIMARY KEY,
+                "card" TEXT NOT NULL REFERENCES "card"("number"),
+                "reference" TEXT,
+                "label" TEXT NOT NULL,
+                "operation_date" TEXT NOT NULL,
+                "value_date" TEXT NOT NULL,
+                "account_date" TEXT NOT NULL,
+                "unusual" BOOLEAN NOT NULL DEFAULT FALSE
+            );
+        </sql>
+        <sql>
             CREATE TABLE "check_operation"(
                 "id" UUID NOT NULL PRIMARY KEY,
                 "account_country_code" TEXT NOT NULL,
@@ -119,20 +131,10 @@
                 "operation_date" TEXT NOT NULL,
                 "value_date" TEXT NOT NULL,
                 "account_date" TEXT NOT NULL,
+                "unusual" BOOLEAN NOT NULL DEFAULT FALSE,
                 FOREIGN KEY ("account_country_code", "account_check_digits", "account_bban")
                 REFERENCES "account"("country_code", "check_digits", "bban")
                 ON UPDATE CASCADE ON DELETE RESTRICT
-            );
-        </sql>
-        <sql>
-            CREATE TABLE "card_operation"(
-                "id" UUID NOT NULL PRIMARY KEY,
-                "card" TEXT NOT NULL REFERENCES "card"("number"),
-                "reference" TEXT,
-                "label" TEXT NOT NULL,
-                "operation_date" TEXT NOT NULL,
-                "value_date" TEXT NOT NULL,
-                "account_date" TEXT NOT NULL
             );
         </sql>
         <sql>
@@ -146,6 +148,7 @@
                 "operation_date" TEXT NOT NULL,
                 "value_date" TEXT NOT NULL,
                 "account_date" TEXT NOT NULL,
+                "unusual" BOOLEAN NOT NULL DEFAULT FALSE,
                 FOREIGN KEY ("account_country_code", "account_check_digits", "account_bban")
                 REFERENCES "account"("country_code", "check_digits", "bban")
                 ON UPDATE CASCADE ON DELETE RESTRICT
@@ -165,10 +168,134 @@
                 "other_party_country_code" TEXT NOT NULL,
                 "other_party_check_digits" TEXT NOT NULL,
                 "other_party_bban" TEXT NOT NULL,
+                "unusual" BOOLEAN NOT NULL DEFAULT FALSE,
                 FOREIGN KEY ("account_country_code", "account_check_digits", "account_bban")
                 REFERENCES "account"("country_code", "check_digits", "bban")
                 ON UPDATE CASCADE ON DELETE RESTRICT
             );
+        </sql>
+        <sql>
+            CREATE TABLE "card_breakdown"(
+                "operation" UUID NOT NULL REFERENCES "card_operation"("id"),
+                "credit" NUMBER NOT NULL,
+                "category" TEXT DEFAULT NULL,
+                "comment" TEXT DEFAULT NULL,
+                "supplier" UUID DEFAULT NULL REFERENCES "holder"("id") ON UPDATE CASCADE ON DELETE RESTRICT
+            );
+        </sql>
+        <sql>
+            CREATE TABLE "check_breakdown"(
+                "operation" UUID NOT NULL REFERENCES "check_operation"("id"),
+                "credit" NUMBER NOT NULL,
+                "category" TEXT DEFAULT NULL,
+                "comment" TEXT DEFAULT NULL,
+                "supplier" UUID DEFAULT NULL REFERENCES "holder"("id") ON UPDATE CASCADE ON DELETE RESTRICT
+            );
+        </sql>
+        <sql>
+            CREATE TABLE "debit_breakdown"(
+                "operation" UUID NOT NULL REFERENCES "debit_operation"("id"),
+                "credit" NUMBER NOT NULL,
+                "category" TEXT DEFAULT NULL,
+                "comment" TEXT DEFAULT NULL,
+                "supplier" UUID DEFAULT NULL REFERENCES "holder"("id") ON UPDATE CASCADE ON DELETE RESTRICT
+            );
+        </sql>
+        <sql>
+            CREATE TABLE "transfer_breakdown"(
+                "operation" UUID NOT NULL REFERENCES "transfer_operation"("id"),
+                "credit" NUMBER NOT NULL,
+                "category" TEXT DEFAULT NULL,
+                "comment" TEXT DEFAULT NULL,
+                "supplier" UUID DEFAULT NULL REFERENCES "holder"("id") ON UPDATE CASCADE ON DELETE RESTRICT
+            );
+        </sql>
+        <sql>
+            CREATE VIEW "operation" AS
+            SELECT
+            'card' AS "type",
+            "card_operation"."id" AS "id",
+            "card"."account_country_code" AS "account_country_code",
+            "card"."account_check_digits" AS "account_check_digits",
+            "card"."account_bban" AS "account_bban",
+            "card_operation"."card" AS "card",
+            "card_operation"."reference" AS "reference",
+            "card_operation"."label" AS "label",
+            SUM("card_breakdown"."credit") AS "credit",
+            "card_operation"."operation_date" AS "operation_date",
+            "card_operation"."value_date" AS "value_date",
+            "card_operation"."account_date" AS "account_date",
+            NULL AS "other_party_country_code",
+            NULL AS "other_party_check_digits",
+            NULL AS "other_party_bban",
+            "card_operation"."unusual" AS "unusual"
+            FROM
+            "card_operation" LEFT JOIN "card" ON "card_operation"."card"="card"."number"
+            INNER JOIN "card_breakdown" ON "card_operation"."id"="card_breakdown"."operation"
+            GROUP BY "card_operation"."id"
+            UNION
+            SELECT
+            'transfer' AS "type",
+            "transfer_operation"."id" AS "id",
+            "transfer_operation"."account_country_code" AS "account_country_code",
+            "transfer_operation"."account_check_digits" AS "account_check_digits",
+            "transfer_operation"."account_bban" AS "account_bban",
+            NULL AS "card",
+            "transfer_operation"."reference" AS "reference",
+            "transfer_operation"."label" AS "label",
+            SUM("transfer_breakdown"."credit") AS "credit",
+            "transfer_operation"."operation_date" AS "operation_date",
+            "transfer_operation"."value_date" AS "value_date",
+            "transfer_operation"."account_date" AS "account_date",
+            "transfer_operation"."other_party_country_code" AS "other_party_country_code",
+            "transfer_operation"."other_party_check_digits" AS "other_party_check_digits",
+            "transfer_operation"."other_party_bban" AS "other_party_bban",
+            "transfer_operation"."unusual" AS "unusual"
+            FROM
+            "transfer_operation" INNER JOIN "transfer_breakdown" ON "transfer_operation"."id"="transfer_breakdown"."operation"
+            GROUP BY "transfer_operation"."id"
+            UNION
+            SELECT
+            'debit' AS "type",
+            "debit_operation"."id" AS "id",
+            "debit_operation"."account_country_code" AS "account_country_code",
+            "debit_operation"."account_check_digits" AS "account_check_digits",
+            "debit_operation"."account_bban" AS "account_bban",
+            NULL AS "card",
+            "debit_operation"."reference" AS "reference",
+            "debit_operation"."label" AS "label",
+            SUM("debit_breakdown"."credit") AS "credit",
+            "debit_operation"."operation_date" AS "operation_date",
+            "debit_operation"."value_date" AS "value_date",
+            "debit_operation"."account_date" AS "account_date",
+            NULL AS "other_party_country_code",
+            NULL AS "other_party_check_digits",
+            NULL AS "other_party_bban",
+            "debit_operation"."unusual" AS "unusual"
+            FROM
+            "debit_operation" INNER JOIN "debit_breakdown" ON "debit_operation"."id"="debit_breakdown"."operation"
+            GROUP BY "debit_operation"."id"
+            UNION
+            SELECT
+            'check' AS "type",
+            "check_operation"."id" AS "id",
+            "check_operation"."account_country_code" AS "account_country_code",
+            "check_operation"."account_check_digits" AS "account_check_digits",
+            "check_operation"."account_bban" AS "account_bban",
+            NULL AS "card",
+            "check_operation"."number" AS "reference",
+            "check_operation"."label" AS "label",
+            SUM("check_breakdown"."credit") AS "credit",
+            "check_operation"."operation_date" AS "operation_date",
+            "check_operation"."value_date" AS "value_date",
+            "check_operation"."account_date" AS "account_date",
+            NULL AS "other_party_country_code",
+            NULL AS "other_party_check_digits",
+            NULL AS "other_party_bban",
+            "check_operation"."unusual" AS "unusual"
+            FROM
+            "check_operation" INNER JOIN "check_breakdown" ON "check_operation"."id"="check_breakdown"."operation"
+            GROUP BY "check_operation"."id"
         </sql>
     </changeSet>
 </databaseChangeLog>
