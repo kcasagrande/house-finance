@@ -297,5 +297,43 @@
             "check_operation" INNER JOIN "check_breakdown" ON "check_operation"."id"="check_breakdown"."operation"
             GROUP BY "check_operation"."id"
         </sql>
+        <sql>
+            CREATE VIEW "breakdown" AS
+            SELECT
+            'transfer' AS "operation_type",
+            "operation" AS "operation_id",
+            "credit" AS "credit",
+            "category" AS "category",
+            "comment" AS "comment",
+            "supplier" AS "supplier"
+            FROM "transfer_breakdown"
+            UNION
+            SELECT
+            'check' AS "operation_type",
+            "operation" AS "operation_id",
+            "credit" AS "credit",
+            "category" AS "category",
+            "comment" AS "comment",
+            "supplier" AS "supplier"
+            FROM "check_breakdown"
+            UNION
+            SELECT
+            'debit' AS "operation_type",
+            "operation" AS "operation_id",
+            "credit" AS "credit",
+            "category" AS "category",
+            "comment" AS "comment",
+            "supplier" AS "supplier"
+            FROM "debit_breakdown"
+            UNION
+            SELECT
+            'card' AS "operation_type",
+            "operation" AS "operation_id",
+            "credit" AS "credit",
+            "category" AS "category",
+            "comment" AS "comment",
+            "supplier" AS "supplier"
+            FROM "card_breakdown"
+        </sql>
     </changeSet>
 </databaseChangeLog>

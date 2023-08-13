@@ -20,8 +20,7 @@ class BankRepository(implicit database: Database)
           |  "bic",
           |  "designation"
           |FROM "bank"""".stripMargin
-      )
-        .map(_.as[Set[Bank]](bank.set))
+      )(bank.set)
     }
   
   override def getByBic(bic: Bic): EitherT[IO, Throwable, Option[Bank]] = {
@@ -33,8 +32,7 @@ class BankRepository(implicit database: Database)
           |FROM "bank"
           |WHERE "bic"={bic}""".stripMargin,
         bic: _*
-      )
-        .map(_.as[Option[Bank]](bank.singleOpt))
+      )(bank.singleOpt)
     }
   }
 

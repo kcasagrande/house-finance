@@ -48,8 +48,7 @@ class AccountRepository(implicit val database: Database)
         |  "domiciliation"
         |FROM "account"
         |""".stripMargin,
-    )
-      .map(_.as[Set[Account]](account(holders).set))
+    )(account(holders).set)
   }
   
   private[this] def getAccount(iban: Iban, holder: Holder)(implicit connection: Connection): EitherT[IO, Throwable, Option[Account]] = {
@@ -65,8 +64,7 @@ class AccountRepository(implicit val database: Database)
         |  AND "check_digits"={check_digits}
         |  AND "bban"={bban}""".stripMargin,
       iban:_*
-    )
-      .map(_.as[Option[Account]](account(holder).singleOpt))
+    )(account(holder).singleOpt)
   }
 
   private[this] def getAllHolders(implicit connection: Connection): EitherT[IO, Throwable, Map[Iban, Holder]] = {
@@ -79,13 +77,12 @@ class AccountRepository(implicit val database: Database)
           |  "combination"
           |FROM "multiple_account_holder"
           |""".stripMargin
+      )(
+        (iban("account_country_code", "account_check_digits", "account_bban")
+          ~ AccountRepository.combination("combination")
+          map { case iban ~ combination => (iban, combination) })
+          .*.map(_.toMap)
       )
-        .map(_.as[Map[Iban, Combination]](
-          (iban("account_country_code", "account_check_digits", "account_bban")
-            ~ AccountRepository.combination("combination")
-            map { case iban ~ combination => (iban, combination) })
-            .*.map(_.toMap)
-        ))
       multipleHolders <- executeQueryWithEffect(
         """SELECT
           |  "i"."account_country_code",
@@ -97,13 +94,12 @@ class AccountRepository(implicit val database: Database)
           |INNER JOIN "holder" "h"
           |ON "i"."holder"="h"."id"
           |""".stripMargin
+      )(
+        (iban("account_country_code", "account_check_digits", "account_bban")
+          ~ singleHolder
+          map { case iban ~ holder => (iban, holder) })
+          .set
       )
-        .map(_.as[Set[(Iban, Holder.Single)]](
-          (iban("account_country_code", "account_check_digits", "account_bban")
-            ~ singleHolder
-            map { case iban ~ holder => (iban, holder) })
-            .set
-        ))
       singleHolders <- executeQueryWithEffect(
         """SELECT
           |  "s"."account_country_code",
@@ -115,13 +111,12 @@ class AccountRepository(implicit val database: Database)
           |INNER JOIN "holder" "h"
           |ON "s"."holder"="h"."id"
           |""".stripMargin
+      )(
+        (iban("account_country_code", "account_check_digits", "account_bban")
+          ~ singleHolder
+          map { case iban ~ holder => (iban, holder) })
+          .set
       )
-        .map(_.as[Set[(Iban, Holder.Single)]](
-          (iban("account_country_code", "account_check_digits", "account_bban")
-            ~ singleHolder
-            map { case iban ~ holder => (iban, holder) })
-            .set
-        ))
     } yield {
       combinations.map {
         case (iban, combination) => iban -> combination.of(multipleHolders.filter(_._1 == iban).map(_._2))
@@ -139,8 +134,7 @@ class AccountRepository(implicit val database: Database)
         |AND "m"."account_bban"={bban}"""
         .stripMargin,
       iban: _*
-    )
-      .map(_.as(AccountRepository.combination("combination").singleOpt))
+    )(AccountRepository.combination("combination").singleOpt)
       .flatMap {
         case None => executeQueryWithEffect(
           """SELECT
@@ -153,8 +147,7 @@ class AccountRepository(implicit val database: Database)
             |AND "s"."account_check_digits"={check_digits}
             |AND "s"."account_bban"={bban}""".stripMargin,
           iban: _*
-        )
-          .map(_.as[Option[Holder.Single]](singleHolder.singleOpt))
+        )(singleHolder.singleOpt)
         case Some(combination) => executeQueryWithEffect(
           """SELECT
             |  "h"."id",
@@ -167,8 +160,7 @@ class AccountRepository(implicit val database: Database)
             |AND "i"."account_bban"={bban}"""
             .stripMargin,
           iban: _*
-        )
-          .map(_.as(singleHolder.*))
+        )(singleHolder.*)
           .map {
             case Nil => None
             case holders => Some(combination.of(holders.toSet))

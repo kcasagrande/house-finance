@@ -38,8 +38,8 @@ package object sqlite3
     Resource.make(IO.delay(DriverManager.getConnection(database.url)))(connection => IO.delay(connection.close()))
       .use(run)
   
-  def executeQueryWithEffect(query: String, namedParameters: NamedParameter*)(implicit connection: Connection): EitherT[IO, Throwable, SqlQueryResult] =
-    EitherT(IO.delay(Try { SQL(query).on(namedParameters:_*).executeQuery() }.toEither))
+  def executeQueryWithEffect[T](query: String, namedParameters: NamedParameter*)(parser: ResultSetParser[T])(implicit connection: Connection): EitherT[IO, Throwable, T] =
+    EitherT(IO.delay(SQL(query).on(namedParameters:_*).executeQuery().asTry[T](parser).toEither))
 
   def executeWithEffect(sql: String, namedParameters: NamedParameter*)(implicit connection: Connection): EitherT[IO, Throwable, Unit] =
     EitherT(IO.delay(Try { SQL(sql).on(namedParameters: _*).execute() }.toEither.map(_ => ())))

@@ -30,8 +30,7 @@ class CardRepository(implicit val database: Database)
           |  "type"
           |FROM "card"
           |""".stripMargin
-      )
-        .map(_.as[Set[Card]](cardParser.set))
+      )(cardParser.set)
     }
 
   override def getByNumber(number: Card.Number): EitherT[IO, Throwable, Option[Card]] =
@@ -51,8 +50,7 @@ class CardRepository(implicit val database: Database)
       namedParameters(
         ("number" -> number)
       ):_*
-    )
-    .map(_.as[Option[Card]](cardParser.singleOpt))
+    )(cardParser.singleOpt)
   }
 
   override def save(card: Card): EitherT[IO, Throwable, Unit] =
