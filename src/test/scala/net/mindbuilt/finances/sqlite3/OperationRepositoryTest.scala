@@ -1,5 +1,6 @@
 package net.mindbuilt.finances.sqlite3
 
+import cats.data.EitherT
 import cats.effect.IO
 import cats.effect.testing.scalatest.AsyncIOSpec
 import net.mindbuilt.finances.business.LocalInterval.LocalIntervalBoundary
@@ -25,7 +26,7 @@ class OperationRepositoryTest
     Operation.ByCard(
       UUID.randomUUID(),
       cards.head.number,
-      "12345670",
+      Some("12345670"),
       "Paiement 0 par carte",
       2023 - AUGUST - 1,
       2023 - AUGUST - 2,
@@ -48,7 +49,7 @@ class OperationRepositoryTest
     Operation.ByDebit(
       UUID.randomUUID(),
       accounts.head.iban,
-      "12345672",
+      Some("12345672"),
       "Paiement 3 par prélèvement",
       1000.cents,
       2023 - AUGUST - 7,
@@ -58,7 +59,7 @@ class OperationRepositoryTest
     Operation.ByTransfer(
       UUID.randomUUID(),
       accounts.head.iban,
-      "12345672",
+      Some("12345672"),
       "Paiement 3 par prélèvement",
       1000.cents,
       2023 - AUGUST - 10,
@@ -70,8 +71,8 @@ class OperationRepositoryTest
   "OperationRepository" - {
     "getByInterval" - {
       "should save many operations of different types and retrieve them by interval" in {
-        val actual = withDatabase { implicit database: Database =>
-          withStandardFixture { implicit database: Database =>
+        val actual = withDatabase { implicit database: EitherT[IO, Throwable, Database] =>
+          withStandardFixture { implicit database: EitherT[IO, Throwable, Database] =>
             val sut = new OperationRepository
             for {
               _ <- operations.map(sut.save).foldLeft(IO.pure(())) { (io, result) => io <& result}
@@ -85,8 +86,8 @@ class OperationRepositoryTest
       }
       
       "should save many operations of different types and retrieve one of them by ID" in {
-        val actual = withDatabase { implicit database: Database =>
-          withStandardFixture { implicit database: Database =>
+        val actual = withDatabase { implicit database: EitherT[IO, Throwable, Database] =>
+          withStandardFixture { implicit database: EitherT[IO, Throwable, Database] =>
             val sut = new OperationRepository
             for {
               _ <- operations.map(sut.save).foldLeft(IO.pure(())) { (io, result) => io <& result }

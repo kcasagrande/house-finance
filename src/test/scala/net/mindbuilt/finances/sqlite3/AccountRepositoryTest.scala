@@ -1,5 +1,7 @@
 package net.mindbuilt.finances.sqlite3
 
+import cats.data.EitherT
+import cats.effect.IO
 import cats.effect.testing.scalatest.AsyncIOSpec
 import net.mindbuilt.finances.business.{Account, Bank, Bic, Holder, Iban}
 import org.scalatest.EitherValues
@@ -27,8 +29,8 @@ class AccountRepositoryTest
       val iban2 = Iban("FR", "21", "098765432109876543210987654321").get
       val account1 = Account(banks.head.bic, iban1, "CONDRIEU", Holder.Single(holderId1, "JOHN SMITH"))
       val account2 = Account(banks.last.bic, iban2, "BPAURA CONDRIEU", Holder.Single(holderId2, "SOMEONE ELSE"))
-      val actual = withDatabase { implicit database: Database =>
-        withBanks(banks.head, banks.tail: _*) { implicit database: Database =>
+      val actual = withDatabase { implicit database: EitherT[IO, Throwable, Database] =>
+        withBanks(banks.head, banks.tail: _*) { implicit database: EitherT[IO, Throwable, Database] =>
           val sut = new AccountRepository()
           for {
             _ <- sut.save(account1)
@@ -47,8 +49,8 @@ class AccountRepositoryTest
       val iban2 = Iban("FR", "21", "098765432109876543210987654321").get
       val account1 = Account(banks.head.bic, iban1, "CONDRIEU", Holder.Multiple.allOf(Set(Holder.Single(holderId1, "JOHN SMITH"), Holder.Single(holderId2, "SOMEONE ELSE"))))
       val account2 = Account(banks.last.bic, iban2, "BPAURA CONDRIEU", Holder.Single(holderId2, "SOMEONE ELSE"))
-      val actual = withDatabase { implicit database: Database =>
-        withBanks(banks.head, banks.tail: _*) { implicit database: Database =>
+      val actual = withDatabase { implicit database: EitherT[IO, Throwable, Database] =>
+        withBanks(banks.head, banks.tail: _*) { implicit database: EitherT[IO, Throwable, Database] =>
           val sut = new AccountRepository()
           for {
             _ <- sut.save(account1)
@@ -67,8 +69,8 @@ class AccountRepositoryTest
       val iban2 = Iban("FR", "21", "098765432109876543210987654321").get
       val account1 = Account(banks.head.bic, iban1, "CONDRIEU", Holder.Multiple.allOf(Set(Holder.Single(holderId1, "JOHN SMITH"), Holder.Single(holderId2, "SOMEONE ELSE"))))
       val account2 = Account(banks.last.bic, iban2, "BPAURA CONDRIEU", Holder.Single(holderId2, "SOMEONE ELSE"))
-      val actual = withDatabase { implicit database: Database =>
-        withBanks(banks.head, banks.tail: _*) { implicit database: Database =>
+      val actual = withDatabase { implicit database: EitherT[IO, Throwable, Database] =>
+        withBanks(banks.head, banks.tail: _*) { implicit database: EitherT[IO, Throwable, Database] =>
           val sut = new AccountRepository()
           for {
             _ <- sut.save(account1)

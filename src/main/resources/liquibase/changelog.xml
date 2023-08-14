@@ -126,12 +126,13 @@
                 "account_country_code" TEXT NOT NULL,
                 "account_check_digits" TEXT NOT NULL,
                 "account_bban" TEXT NOT NULL,
-                "number" TEXT NOT NULL UNIQUE,
+                "number" TEXT NOT NULL,
                 "label" TEXT NOT NULL,
                 "operation_date" TEXT NOT NULL,
                 "value_date" TEXT NOT NULL,
                 "account_date" TEXT NOT NULL,
                 "unusual" BOOLEAN NOT NULL DEFAULT FALSE,
+                UNIQUE("account_country_code", "account_check_digits", "account_bban", "number"),
                 FOREIGN KEY ("account_country_code", "account_check_digits", "account_bban")
                 REFERENCES "account"("country_code", "check_digits", "bban")
                 ON UPDATE CASCADE ON DELETE RESTRICT

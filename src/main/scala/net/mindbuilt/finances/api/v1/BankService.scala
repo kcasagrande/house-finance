@@ -11,7 +11,7 @@ import org.http4s.{EntityEncoder, HttpRoutes}
 
 import java.sql.Connection
 
-class BankService(implicit connection: Connection) {
+class BankService() {
   def apply(): HttpRoutes[IO] = HttpRoutes.of[IO] {
     case GET -> Root =>
       implicit val encoder: EntityEncoder[IO, Option[Bank]] = jsonEncoderOf(Encoder.instance[Option[Bank]] {

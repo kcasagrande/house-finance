@@ -8,17 +8,13 @@ import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.Router
 import org.http4s.server.middleware.{ErrorAction, ErrorHandling}
 
-import java.sql.{Connection, DriverManager}
-
 object Main
   extends IOApp
+    with Module
+    with api.v1.Module
+    with application.Module
+    with sqlite3.Module
 {
-  implicit val connection: Connection = {
-    val connection = DriverManager.getConnection("jdbc:sqlite:file:/home/orion/finances/finances.sqlite3?mode=ro")
-    connection.setAutoCommit(false)
-    connection
-  }
-  
   private def withErrorLogging(httpApp: HttpApp[IO]) =
     ErrorHandling.Recover.total(
       ErrorAction.log(
@@ -36,7 +32,8 @@ object Main
     .withHost(ipv4"127.0.0.1")
     .withPort(port"8080")
     .withHttpApp(withErrorLogging(Router(
-      "/banks" -> new BankService().apply()
+      "/banks" -> new BankService().apply(),
+      "/operations" -> operationController()
     ).orNotFound))
     .build
     .use(_ => IO.never)

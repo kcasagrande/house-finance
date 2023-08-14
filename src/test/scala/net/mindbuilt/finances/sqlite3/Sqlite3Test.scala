@@ -1,6 +1,8 @@
 package net.mindbuilt.finances.sqlite3
 
 import anorm.SqlParser.long
+import cats.data.EitherT
+import cats.effect.IO
 import cats.effect.testing.scalatest.AsyncIOSpec
 import org.scalatest.EitherValues
 import org.scalatest.freespec.AsyncFreeSpecLike
@@ -17,7 +19,7 @@ class Sqlite3Test
 {
   "executeBatchWithEffect" - {
     "should return a failure when the table structure is invalid" in {
-      val result = withDatabase { implicit database: Database =>
+      val result = withDatabase { implicit database: EitherT[IO, Throwable, Database] =>
         withConnection { implicit connection: Connection =>
           executeBatchWithEffect(
             """INSERT INTO "invalid_table"("invalid_column") VALUES({value})""",
@@ -30,7 +32,7 @@ class Sqlite3Test
     }
     
     "should return a failure when there is a unique constraint violation" in {
-      val result = withDatabase { implicit database: Database =>
+      val result = withDatabase { implicit database: EitherT[IO, Throwable, Database] =>
         withConnection { implicit connection: Connection =>
           executeBatchWithEffect(
             """INSERT INTO "card_type"("name") VALUES({name})""",
@@ -45,7 +47,7 @@ class Sqlite3Test
   
   "executeQueryWithEffect" - {
     "should return a failure" in {
-      val result = withDatabase { implicit database: Database =>
+      val result = withDatabase { implicit database: EitherT[IO, Throwable, Database] =>
         withConnection { implicit connection: Connection =>
           executeQueryWithEffect("""SELECT COUNT(*) AS "count" FROM "invalid_table"""")(long("count").single)
         }
@@ -56,7 +58,7 @@ class Sqlite3Test
 
   "executeWithEffect" - {
     "should return a failure" in {
-      val result = withDatabase { implicit database: Database =>
+      val result = withDatabase { implicit database: EitherT[IO, Throwable, Database] =>
         withConnection { implicit connection: Connection =>
           executeWithEffect("""INSERT INTO "invalid_table"("invalid_column") VALUES(0)""")
         }

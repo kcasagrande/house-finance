@@ -1,5 +1,6 @@
 package net.mindbuilt.finances.sqlite3
 
+import cats.data.EitherT
 import cats.effect.IO
 import liquibase.Scope
 import liquibase.Scope.ScopedRunner
@@ -14,30 +15,7 @@ import java.util.UUID
 
 trait InMemoryDatabase
 { self: Suite =>
-  def withDatabaseSync(test: Connection => Any): Unit = {
-    val databaseUrl = s"jdbc:sqlite:file:memory-${UUID.randomUUID().toString}?mode=memory&cache=shared"
-    implicit val connection: Connection = {
-      val connection = DriverManager.getConnection(databaseUrl)
-      connection.setAutoCommit(false)
-      connection
-    }
-
-    val resourceAccessor: SearchPathResourceAccessor = new SearchPathResourceAccessor(
-      new DirectoryResourceAccessor(Path.of("src/main/resources/liquibase"))
-    )
-    Scope.child(Scope.Attr.resourceAccessor.name(), resourceAccessor, new ScopedRunner[Unit] {
-      override def run(): Unit = {
-        val commandScope = new CommandScope("update")
-          .addArgumentValue(UpdateCommandStep.CHANGELOG_FILE_ARG, "changelog.xml")
-          .addArgumentValue("url", databaseUrl)
-        commandScope.execute()
-      }
-    })
-    test(connection)
-    connection.close()
-  }
-
-  def withDatabase[T](test: Database => IO[T]): IO[T] = {
+  def withDatabase[T](test: EitherT[IO, Throwable, Database] => IO[T]): IO[T] = {
     val databaseUrl = s"jdbc:sqlite:file:memory-${UUID.randomUUID().toString}?mode=memory&cache=shared"
     def liquibaseUpdate(): Unit = {
       val resourceAccessor: SearchPathResourceAccessor = new SearchPathResourceAccessor(
@@ -56,7 +34,7 @@ trait InMemoryDatabase
       _ <- IO(println("Using database " + databaseUrl + "."))
       standByConnection <- IO.delay(DriverManager.getConnection(databaseUrl))
       _ <- IO(liquibaseUpdate())
-      testResult <- test(Database(url = databaseUrl))
+      testResult <- test(EitherT.liftF(IO.delay(Database(url = databaseUrl))))
       _ <- IO.delay(standByConnection.close())
     } yield {
       testResult

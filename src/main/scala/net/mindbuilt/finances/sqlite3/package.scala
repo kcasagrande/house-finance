@@ -1,7 +1,7 @@
 package net.mindbuilt.finances
 
 import anorm.SqlParser._
-import anorm.{BatchSql, NamedParameter, ParameterValue, ResultSetParser, Row, RowParser, SQL, SqlQueryResult, SqlRequestError, SqlResult}
+import anorm.{BatchSql, NamedParameter, ParameterValue, ResultSetParser, Row, RowParser, SQL, SqlRequestError, SqlResult}
 import cats.data.EitherT
 import cats.effect.IO
 import cats.effect.kernel.Resource
@@ -34,8 +34,12 @@ package object sqlite3
   implicit def liftEitherT[A, B](effect: IO[Either[A, B]]): EitherT[IO, A, B] = EitherT(effect)
   implicit def unliftEitherT[A, B](eitherT: EitherT[IO, A, B]): IO[Either[A, B]] = eitherT.value
   
-  def withConnection[T](run: Connection => IO[T])(implicit database: Database): IO[T] =
-    Resource.make(IO.delay(DriverManager.getConnection(database.url)))(connection => IO.delay(connection.close()))
+  def withConnection[T](run: Connection => EitherT[IO, Throwable, T])(implicit database: EitherT[IO, Throwable, Database]): EitherT[IO, Throwable, T] =
+    Resource.make(
+      database
+        .map(_.url)
+        .map(DriverManager.getConnection)
+    )(connection => EitherT.liftF(IO.delay(connection.close())))
       .use(run)
   
   def executeQueryWithEffect[T](query: String, namedParameters: NamedParameter*)(parser: ResultSetParser[T])(implicit connection: Connection): EitherT[IO, Throwable, T] =

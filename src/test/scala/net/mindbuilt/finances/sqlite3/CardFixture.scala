@@ -1,6 +1,7 @@
 package net.mindbuilt.finances.sqlite3
 
 import anorm.NamedParameter
+import cats.data.EitherT
 import cats.effect.IO
 import net.mindbuilt.finances.business.Card
 import net.mindbuilt.finances.sqlite3.CardFixture._
@@ -10,8 +11,8 @@ import scala.language.implicitConversions
 
 trait CardFixture { self: InMemoryDatabase =>
   def withCards[T](firstCard: Card, otherCards: Card*)
-    (test: Database => IO[T])
-    (implicit database: Database): IO[T] = {
+    (test: EitherT[IO, Throwable, Database] => IO[T])
+    (implicit database: EitherT[IO, Throwable, Database]): IO[T] = {
     withConnection { implicit connection: Connection =>
       executeBatchWithEffect(
         """INSERT INTO `card`(`number`, `account_country_code`, `account_check_digits`, `account_bban`, `holder`, `expiration`, `type`)
@@ -21,6 +22,7 @@ trait CardFixture { self: InMemoryDatabase =>
         otherCards.map(cardToNamedParameters): _*
       )
     }
+      .value
       .flatMap(_ => test(database))
   }
 }

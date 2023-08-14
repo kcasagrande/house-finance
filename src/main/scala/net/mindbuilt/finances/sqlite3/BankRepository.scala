@@ -10,7 +10,7 @@ import net.mindbuilt.finances.sqlite3.BankRepository._
 import java.sql.Connection
 import scala.language.implicitConversions
 
-class BankRepository(implicit database: Database)
+class BankRepository(implicit database: EitherT[IO, Throwable, Database])
   extends Port
 {
   override def getAll: EitherT[IO, Throwable, Set[Bank]] =

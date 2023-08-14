@@ -12,7 +12,7 @@ import net.mindbuilt.finances.sqlite3.AccountRepository.{account, ibanToNamedPar
 import java.sql.Connection
 import scala.language.implicitConversions
 
-class AccountRepository(implicit val database: Database)
+class AccountRepository(implicit val database: EitherT[IO, Throwable, Database])
   extends Port
 {
   override def getAll: EitherT[IO, Throwable, Set[Account]] =

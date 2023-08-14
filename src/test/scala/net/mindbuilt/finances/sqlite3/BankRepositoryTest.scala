@@ -20,7 +20,7 @@ class BankRepositoryTest
       val bank1 = Bank(bic1, "CONDRIEU")
       val bic2 = Bic("CCBP", "FR", "PP", "GRE").get
       val bank2 = Bank(bic2, "BPAURA CONDRIEU")
-      val actual = withDatabase { implicit database: Database =>
+      val actual = withDatabase { implicit database: EitherT[IO, Throwable, Database] =>
         val sut = new BankRepository()
         for {
           _ <- sut.save(bank1)
@@ -39,7 +39,7 @@ class BankRepositoryTest
     val bank1 = Bank(bic1, "CONDRIEU")
     val bic2 = Bic("CCBP", "FR", "PP", "GRE").get
     val bank2 = Bank(bic2, "BPAURA CONDRIEU")
-    val actual = withDatabase { implicit database: Database =>
+    val actual = withDatabase { implicit database: EitherT[IO, Throwable, Database] =>
       val sut = new BankRepository()
       for {
         _ <- sut.save(bank1)

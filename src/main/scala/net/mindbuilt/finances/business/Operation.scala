@@ -21,7 +21,7 @@ object Operation {
   case class ByCard(
     override val id: Operation.Id,
     val card: Card.Number,
-    val reference: String,
+    val reference: Option[String],
     override val label: String,
     override val operationDate: LocalDate,
     override val valueDate: LocalDate,
@@ -33,7 +33,7 @@ object Operation {
     def apply(
       id: Operation.Id,
       card: Card.Number,
-      reference: String,
+      reference: Option[String],
       label: String,
       credit: Cents,
       operationDate: LocalDate,
@@ -71,7 +71,7 @@ object Operation {
   case class ByDebit(
     override val id: Operation.Id,
     account: Iban,
-    reference: String,
+    reference: Option[String],
     override val label: String,
     override val operationDate: LocalDate,
     override val valueDate: LocalDate,
@@ -83,7 +83,7 @@ object Operation {
     def apply(
       id: Operation.Id,
       account: Iban,
-      reference: String,
+      reference: Option[String],
       label: String,
       credit: Cents,
       operationDate: LocalDate,
@@ -96,7 +96,7 @@ object Operation {
   case class ByTransfer(
     override val id: Operation.Id,
     account: Iban,
-    reference: String,
+    reference: Option[String],
     override val label: String,
     override val operationDate: LocalDate,
     override val valueDate: LocalDate,
@@ -109,7 +109,7 @@ object Operation {
     def apply(
       id: Operation.Id,
       account: Iban,
-      reference: String,
+      reference: Option[String],
       label: String,
       credit: Cents,
       operationDate: LocalDate,

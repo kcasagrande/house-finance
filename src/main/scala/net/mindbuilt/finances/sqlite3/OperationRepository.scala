@@ -13,45 +13,128 @@ import java.sql.Connection
 import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
 import scala.language.implicitConversions
 
-class OperationRepository(implicit val database: Database)
+class OperationRepository(implicit val database: EitherT[IO, Throwable, Database])
   extends port.OperationRepository
 {
   override def getByInterval(interval: LocalInterval): EitherT[IO, Throwable, Seq[Operation]] =
     withConnection { implicit connection: Connection =>
-      executeQueryWithEffect(
-        """SELECT *
-          |FROM "operation"
-          |INNER JOIN "breakdown"
-          |ON "operation"."type" = "breakdown"."operation_type"
-          |AND "operation"."id" = "breakdown"."operation_id"
-          |WHERE (
-          |"operation_date" >= {start}
-          |OR "value_date" >= {start}
-          |OR "account_date" >= {start}
-          |) AND (
-          |"operation_date" <= {end}
-          |OR "value_date" <= {end}
-          |OR "account_date" <= {end}
-          |)
-          |ORDER BY "operation_date" ASC, "value_date" ASC, "account_date" ASC
-          |""".stripMargin,
-        interval: _*
-      )(operationParser.*)
-        .map(_
-          .groupBy(_._1)
-          .map(entry => entry._1 -> entry._2.map(_._2)).toSeq
-          .map {
-            case (Operation.ByCard(id, card, reference, label, operationDate, valueDate, accountDate, _), breakdown) =>
-              Operation.ByCard(id, card, reference, label, operationDate, valueDate, accountDate, breakdown)
-            case (Operation.ByCheck(id, account, number, label, operationDate, valueDate, accountDate, _), breakdown) =>
-              Operation.ByCheck(id, account, number, label, operationDate, valueDate, accountDate, breakdown)
-            case (Operation.ByDebit(id, account, reference, label, operationDate, valueDate, accountDate, _), breakdown) =>
-              Operation.ByDebit(id, account, reference, label, operationDate, valueDate, accountDate, breakdown)
-            case (Operation.ByTransfer(id, account, reference, label, operationDate, valueDate, accountDate, otherParty, _), breakdown) =>
-              Operation.ByTransfer(id, account, reference, label, operationDate, valueDate, accountDate, otherParty, breakdown)
-          }
-        )
+      for {
+        cardOperations <- getCardOperationsByInterval(interval)
+        checkOperations <- getCheckOperationsByInterval(interval)
+        debitOperations <- getDebitOperationsByInterval(interval)
+        transferOperations <- getTransferOperationsByInterval(interval)
+      } yield {
+        cardOperations ++ checkOperations ++ debitOperations ++ transferOperations
+      }
     }
+    
+  private[this] def getCardOperationsByInterval(interval: LocalInterval)(implicit connection: Connection): EitherT[IO, Throwable, Seq[Operation.ByCard]] =
+    executeQueryWithEffect(
+      """SELECT *
+        |FROM "card_operation" "o"
+        |INNER JOIN "card_breakdown" "b"
+        |ON "o"."id" = "b"."operation"
+        |WHERE (
+        |"operation_date" >= {start}
+        |OR "value_date" >= {start}
+        |OR "account_date" >= {start}
+        |) AND (
+        |"operation_date" <= {end}
+        |OR "value_date" <= {end}
+        |OR "account_date" <= {end}
+        |)
+        |ORDER BY "operation_date" ASC, "value_date" ASC, "account_date" ASC
+        |""".stripMargin,
+      interval: _*
+    )(cardOperationParser.*)
+      .map(_
+        .groupBy(_._1)
+        .map(entry => entry._1 -> entry._2.map(_._2)).toSeq
+        .map {
+          case (Operation.ByCard(id, card, reference, label, operationDate, valueDate, accountDate, _), breakdown) => Operation.ByCard(id, card, reference, label, operationDate, valueDate, accountDate, breakdown)
+        }
+      )
+
+  private[this] def getCheckOperationsByInterval(interval: LocalInterval)(implicit connection: Connection): EitherT[IO, Throwable, Seq[Operation.ByCheck]] =
+    executeQueryWithEffect(
+      """SELECT *
+        |FROM "check_operation" "o"
+        |INNER JOIN "check_breakdown" "b"
+        |ON "o"."id" = "b"."operation"
+        |WHERE (
+        |"operation_date" >= {start}
+        |OR "value_date" >= {start}
+        |OR "account_date" >= {start}
+        |) AND (
+        |"operation_date" <= {end}
+        |OR "value_date" <= {end}
+        |OR "account_date" <= {end}
+        |)
+        |ORDER BY "operation_date" ASC, "value_date" ASC, "account_date" ASC
+        |""".stripMargin,
+      interval: _*
+    )(checkOperationParser.*)
+      .map(_
+        .groupBy(_._1)
+        .map(entry => entry._1 -> entry._2.map(_._2)).toSeq
+        .map {
+          case (Operation.ByCheck(id, account, number, label, operationDate, valueDate, accountDate, _), breakdown) => Operation.ByCheck(id, account, number, label, operationDate, valueDate, accountDate, breakdown)
+        }
+      )
+
+  private[this] def getDebitOperationsByInterval(interval: LocalInterval)(implicit connection: Connection): EitherT[IO, Throwable, Seq[Operation.ByDebit]] =
+    executeQueryWithEffect(
+      """SELECT *
+        |FROM "debit_operation" "o"
+        |INNER JOIN "debit_breakdown" "b"
+        |ON "o"."id" = "b"."operation"
+        |WHERE (
+        |"operation_date" >= {start}
+        |OR "value_date" >= {start}
+        |OR "account_date" >= {start}
+        |) AND (
+        |"operation_date" <= {end}
+        |OR "value_date" <= {end}
+        |OR "account_date" <= {end}
+        |)
+        |ORDER BY "operation_date" ASC, "value_date" ASC, "account_date" ASC
+        |""".stripMargin,
+      interval: _*
+    )(debitOperationParser.*)
+      .map(_
+        .groupBy(_._1)
+        .map(entry => entry._1 -> entry._2.map(_._2)).toSeq
+        .map {
+          case (Operation.ByDebit(id, account, reference, label, operationDate, valueDate, accountDate, _), breakdown) => Operation.ByDebit(id, account, reference, label, operationDate, valueDate, accountDate, breakdown)
+        }
+      )
+
+  private[this] def getTransferOperationsByInterval(interval: LocalInterval)(implicit connection: Connection): EitherT[IO, Throwable, Seq[Operation.ByTransfer]] =
+    executeQueryWithEffect(
+      """SELECT *
+        |FROM "transfer_operation" "o"
+        |INNER JOIN "transfer_breakdown" "b"
+        |ON "o"."id" = "b"."operation"
+        |WHERE (
+        |"operation_date" >= {start}
+        |OR "value_date" >= {start}
+        |OR "account_date" >= {start}
+        |) AND (
+        |"operation_date" <= {end}
+        |OR "value_date" <= {end}
+        |OR "account_date" <= {end}
+        |)
+        |ORDER BY "operation_date" ASC, "value_date" ASC, "account_date" ASC
+        |""".stripMargin,
+      interval: _*
+    )(transferOperationParser.*)
+      .map(_
+        .groupBy(_._1)
+        .map(entry => entry._1 -> entry._2.map(_._2)).toSeq
+        .map {
+          case (Operation.ByTransfer(id, account, reference, label, operationDate, valueDate, accountDate, otherParty, _), breakdown) => Operation.ByTransfer(id, account, reference, label, operationDate, valueDate, accountDate, otherParty, breakdown)
+        }
+      )
 
   override def save(operation: Operation): EitherT[IO, Throwable, Unit] = {
     withConnection { implicit connection: Connection =>
@@ -251,7 +334,7 @@ object OperationRepository {
       id <- uuid("id")
       label <- str("label")
       card <- str("card")
-      reference <- str("reference")
+      reference <- str("reference").?
       operationDate <- localDate("operation_date")
       valueDate <- localDate("value_date")
       accountDate <- localDate("account_date")
@@ -267,7 +350,7 @@ object OperationRepository {
     for {
       id <- uuid("id")
       account <- iban("account_country_code", "account_check_digits", "account_bban")
-      number <- str("reference")
+      number <- str("number")
       label <- str("label")
       operationDate <- localDate("operation_date")
       valueDate <- localDate("value_date")
@@ -284,7 +367,7 @@ object OperationRepository {
     for {
       id <- uuid("id")
       account <- iban("account_country_code", "account_check_digits", "account_bban")
-      reference <- str("reference")
+      reference <- str("reference").?
       label <- str("label")
       operationDate <- localDate("operation_date")
       valueDate <- localDate("value_date")
@@ -301,7 +384,7 @@ object OperationRepository {
     for {
       id <- uuid("id")
       account <- iban("account_country_code", "account_check_digits", "account_bban")
-      reference <- str("reference")
+      reference <- str("reference").?
       label <- str("label")
       operationDate <- localDate("operation_date")
       valueDate <- localDate("value_date")

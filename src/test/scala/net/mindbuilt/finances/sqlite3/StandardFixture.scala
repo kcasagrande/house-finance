@@ -1,6 +1,7 @@
 package net.mindbuilt.finances.sqlite3
 
 import anorm.NamedParameter
+import cats.data.EitherT
 import cats.effect.IO
 import net.mindbuilt.finances.business.{Account, Bank, Bic, Card, Holder, Iban}
 import net.mindbuilt.finances.sqlite3.StandardFixture._
@@ -13,8 +14,8 @@ import java.util.UUID
 
 trait StandardFixture { self: InMemoryDatabase =>
   def withStandardFixture[T]
-    (test: Database => IO[T])
-    (implicit database: Database): IO[T] =
+    (test: EitherT[IO, Throwable, Database] => IO[T])
+    (implicit database: EitherT[IO, Throwable, Database]): IO[T] =
   {
     withConnection { implicit connection: Connection =>
       (

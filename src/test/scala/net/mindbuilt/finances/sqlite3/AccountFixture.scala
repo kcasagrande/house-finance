@@ -1,6 +1,7 @@
 package net.mindbuilt.finances.sqlite3
 
 import anorm.NamedParameter
+import cats.data.EitherT
 import cats.effect.IO
 import net.mindbuilt.finances.business.Account
 import net.mindbuilt.finances.sqlite3.AccountFixture._
@@ -11,8 +12,8 @@ import scala.language.implicitConversions
 trait AccountFixture
 { self: InMemoryDatabase =>
   def withAccounts[T](firstAccount: Account, otherAccounts: Account*)
-    (test: Database => IO[T])
-    (implicit database: Database): IO[T] =
+    (test: EitherT[IO, Throwable, Database] => IO[T])
+    (implicit database: EitherT[IO, Throwable, Database]): IO[T] =
     withConnection { implicit connection: Connection =>
       executeBatchWithEffect(
         """INSERT INTO "account"("bank", "country_code", "check_digits", "bban", "domiciliation")
@@ -21,6 +22,7 @@ trait AccountFixture
         otherAccounts.map(accountToNamedParameters): _*
       )
     }
+      .value
       .flatMap(_ => test(database))
 }
 

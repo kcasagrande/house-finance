@@ -14,7 +14,7 @@ import java.time.format.DateTimeFormatter
 import java.util.UUID
 import scala.language.implicitConversions
 
-class CardRepository(implicit val database: Database)
+class CardRepository(implicit val database: EitherT[IO, Throwable, Database])
   extends port.CardRepository
 {
   override def getAll: EitherT[IO, Throwable, Set[Card]] =
