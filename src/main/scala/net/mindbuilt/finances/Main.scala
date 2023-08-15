@@ -11,6 +11,7 @@ import org.http4s.server.middleware.{ErrorAction, ErrorHandling}
 object Main
   extends IOApp
     with Module
+    with front.Module
     with api.v1.Module
     with application.Module
     with sqlite3.Module
@@ -27,13 +28,17 @@ object Main
           IO.println(throwable)
       )
     )
+    
+  val apiRoot = "/api/v1"
+  
   override def run(args: List[String]): IO[ExitCode] = EmberServerBuilder
     .default[IO]
     .withHost(ipv4"127.0.0.1")
     .withPort(port"8080")
     .withHttpApp(withErrorLogging(Router(
       "/banks" -> new BankService().apply(),
-      "/operations" -> operationController()
+      apiRoot + "/operations" -> operationController(),
+      "" -> frontController()
     ).orNotFound))
     .build
     .use(_ => IO.never)

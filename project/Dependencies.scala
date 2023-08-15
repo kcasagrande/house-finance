@@ -17,6 +17,7 @@ object Dependencies {
   lazy val `http4s-dsl` = "org.http4s" %% "http4s-dsl" % http4sVersion
   lazy val `http4s-ember-server` = "org.http4s" %% "http4s-ember-server" % http4sVersion
   lazy val `http4s-circe` = "org.http4s" %% "http4s-circe" % http4sVersion
+  lazy val `http4s-twirl` = "org.http4s" %% "http4s-twirl" % "0.23.17"
   lazy val `circe-literal` = "io.circe" %% "circe-literal" % "0.14.5"
   lazy val pureconfig = "com.github.pureconfig" %% "pureconfig" % "0.17.4"
 }

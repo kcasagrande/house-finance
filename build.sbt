@@ -2,10 +2,11 @@ import Dependencies._
 
 ThisBuild / scalaVersion     := "2.13.11"
 ThisBuild / version          := "0.1.0-SNAPSHOT"
-ThisBuild / organization     := "com.example"
-ThisBuild / organizationName := "example"
+ThisBuild / organization     := "net.mindbuilt"
+ThisBuild / organizationName := "finances"
 
 lazy val root = (project in file("."))
+  .enablePlugins(SbtTwirl)
   .settings(
     name := "House finance",
     libraryDependencies ++= Seq(
@@ -20,6 +21,7 @@ lazy val root = (project in file("."))
       `http4s-dsl`,
       `http4s-ember-server`,
       `http4s-circe`,
+      `http4s-twirl`,
       `circe-literal`,
       pureconfig,
       `macwire-macros` % Provided,
