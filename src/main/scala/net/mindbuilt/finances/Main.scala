@@ -6,7 +6,7 @@ import net.mindbuilt.finances.api.v1.BankService
 import org.http4s.HttpApp
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.Router
-import org.http4s.server.middleware.{ErrorAction, ErrorHandling}
+import org.http4s.server.middleware.{CORS, CORSPolicy, ErrorAction, ErrorHandling}
 
 object Main
   extends IOApp
@@ -35,11 +35,11 @@ object Main
     .default[IO]
     .withHost(ipv4"127.0.0.1")
     .withPort(port"8080")
-    .withHttpApp(withErrorLogging(Router(
+    .withHttpApp(CORS.policy.withAllowOriginAll(withErrorLogging(Router(
       "/banks" -> new BankService().apply(),
       apiRoot + "/operations" -> operationController(),
       "" -> frontController()
-    ).orNotFound))
+    ).orNotFound)))
     .build
     .use(_ => IO.never)
     .as(ExitCode.Success)
