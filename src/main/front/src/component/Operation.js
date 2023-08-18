@@ -2,6 +2,7 @@ import React from 'react';
 import { Collapse, IconButton, Table, TableRow, TableCell, TableHead, TableBody } from '@mui/material';
 import { KeyboardArrowDown, KeyboardArrowRight } from '@mui/icons-material';
 import Breakdown from './Breakdown';
+import OperationType from './OperationType';
 
 function Operation(props) {
   const {operation} = props;
@@ -20,6 +21,7 @@ function Operation(props) {
           </IconButton>
         </TableCell>
         <TableCell>{operation.number}</TableCell>
+        <TableCell><OperationType type={operation.type} /></TableCell>
         <TableCell>{operation.label}</TableCell>
         <TableCell>{operation.operationDate}</TableCell>
         <TableCell>{operation.valueDate}</TableCell>
@@ -28,7 +30,7 @@ function Operation(props) {
         <TableCell>{operation.card}</TableCell>
       </TableRow>
       <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0}} colSpan="8">
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0}} colSpan="9">
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Table>
               <TableHead>
