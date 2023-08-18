@@ -1,12 +1,20 @@
 import React from 'react';
 import { Collapse, IconButton, Table, TableRow, TableCell, TableHead, TableBody } from '@mui/material';
 import { KeyboardArrowDown, KeyboardArrowRight } from '@mui/icons-material';
-import Breakdown from './Breakdown';
+import Category from './Category';
 import OperationType from './OperationType';
 
 function Operation(props) {
   const {operation} = props;
   const [open, setOpen] = React.useState(false);
+  
+  function groupByCategory(supplies) {
+    return supplies.reduce((categories, supply) =>
+      Object.keys(categories).includes(supply.category) ?
+        {...categories, [supply.category]: [supply, ...categories[supply.category]]} :
+        {...categories, [supply.category]: [supply]}
+      , {});
+  }
   
   return (
     <>
@@ -36,14 +44,14 @@ function Operation(props) {
               <TableHead>
                 <TableRow>
                   <TableCell>Catégorie</TableCell>
-                  <TableCell>Fournisseur</TableCell>
-                  <TableCell>Montant</TableCell>
+                  <TableCell>Fournisseurs</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {operation.breakdown.map((breakdown, index) =>
-                  <Breakdown key={'breakdown-' + operation.id + '-' + index} breakdown={breakdown} />
-                )}
+                {
+                  Object.entries(groupByCategory(operation.breakdown))
+                    .map((entry) => <Category key={'category-' + entry[0]} name={entry[0]} supplies={entry[1]} />)
+                }
               </TableBody>
             </Table>
           </Collapse>
