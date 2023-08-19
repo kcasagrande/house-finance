@@ -9,11 +9,13 @@ function Operation(props) {
   const [open, setOpen] = React.useState(false);
   
   function groupByCategory(supplies) {
-    return supplies.reduce((categories, supply) =>
-      Object.keys(categories).includes(supply.category) ?
-        {...categories, [supply.category]: [supply, ...categories[supply.category]]} :
-        {...categories, [supply.category]: [supply]}
-      , {});
+    const groups = supplies.reduce((categories, supply) => {
+      const key = supply.category ?? '';
+      return Object.keys(categories).includes(key) ?
+        {...categories, [key]: [supply, ...categories[key]]} :
+        {...categories, [key]: [supply]}
+    }, {});
+    return groups;
   }
   
   return (
