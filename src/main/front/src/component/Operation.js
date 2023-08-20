@@ -3,6 +3,7 @@ import { Collapse, IconButton, Table, TableRow, TableCell, TableHead, TableBody 
 import { KeyboardArrowDown, KeyboardArrowRight } from '@mui/icons-material';
 import Category from './Category';
 import OperationType from './OperationType';
+import { centsAsEurosString } from '../Cents'
 
 function Operation(props) {
   const {operation} = props;
@@ -36,7 +37,7 @@ function Operation(props) {
         <TableCell>{operation.operationDate}</TableCell>
         <TableCell>{operation.valueDate}</TableCell>
         <TableCell>{operation.accountDate}</TableCell>
-        <TableCell className="euros">{operation.breakdown.map(breakdown => breakdown.credit).reduce((sum, amount) => sum + amount, 0) / 100.0}</TableCell>
+        <TableCell className="euros">{centsAsEurosString(operation.breakdown.map(breakdown => breakdown.credit).reduce((sum, amount) => sum + amount, 0))}</TableCell>
         <TableCell>{operation.card}</TableCell>
       </TableRow>
       <TableRow>

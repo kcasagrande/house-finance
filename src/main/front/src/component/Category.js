@@ -1,27 +1,20 @@
 import React from 'react';
-import { Autocomplete, Avatar, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TableRow, TableCell, TextField, Tooltip } from '@mui/material';
+import { Avatar, Chip, TableRow, TableCell, Tooltip } from '@mui/material';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import Breakdown from './Breakdown';
+import {centsAsEurosString} from '../Cents';
 
 function Unsupplied(props) {
   const { credit } = props;
-  const [open, setOpen] = React.useState(false);
-  const [remaining, setRemaining] = React.useState(0);
-  const [error, setError] = React.useState(false);
+  const [breakdownOpen, setBreakdownOpen] = React.useState(false);
   
   function handleCreate() {
-    console.log("TODO Create breakdown");
-    setOpen(true);
+    setBreakdownOpen(true);
   }
   
-  function handleClose() {
-    setOpen(false);
-    setRemaining(0);
-  }
-  
-  function handleChange(event) {
-    setError(Math.abs(Number.parseFloat(event.target.value).toFixed(2)) > Math.abs(credit.toFixed(2)));
-    setRemaining(credit - Number.parseFloat(event.target.value));
+  function handleBreakdownClose() {
+    setBreakdownOpen(false);
   }
   
   return (
@@ -29,25 +22,11 @@ function Unsupplied(props) {
       <Chip
         sx={{ marginRight: '1ex' }}
         variant="outlined"
-        label={credit + ' €'}
+        label={centsAsEurosString(credit) + ' €'}
         onDelete={handleCreate}
         deleteIcon={<Tooltip title="Ventiler la somme"><AddCircleIcon /></Tooltip>}
       />
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Ventiler la somme</DialogTitle>
-        <DialogContent>
-          <Stack direction="row" spacing={1} mt={1} mb={1}>
-            <TextField label="Montant" type="number" onChange={handleChange} defaultValue={credit} error={error} />
-            <TextField disabled={true} label="Montant restant après ventilation" type="number" value={remaining.toFixed(2)} error={error} />
-          </Stack>
-          <Autocomplete freeSolo forcePopupIcon={true} options={['A', 'B']} renderInput={(parameters) => <TextField {...parameters} label="Catégorie" margin="dense" />} />
-          <Autocomplete freeSolo forcePopupIcon={true} options={['A', 'B']} renderInput={(parameters) => <TextField {...parameters} label="Fournisseur" margin="dense" />} />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Annuler</Button>
-          <Button onClick={handleClose} autoFocus>Enregistrer</Button>
-        </DialogActions>
-      </Dialog>
+      <Breakdown open={breakdownOpen} credit={credit} onClose={handleBreakdownClose} />
     </>
   );
 }
@@ -71,7 +50,7 @@ function Supply(props) {
       />
     );
   } else {
-    return (<Unsupplied credit={credit / 100.0} />);
+    return (<Unsupplied credit={credit} />);
   }
 }
 
