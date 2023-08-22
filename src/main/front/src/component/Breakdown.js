@@ -1,16 +1,17 @@
 import React from 'react';
-import { Autocomplete, Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormLabel, FormControlLabel, Radio, RadioGroup, Stack, TextField } from '@mui/material';
+import { Autocomplete, Avatar, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormLabel, FormControlLabel, Radio, RadioGroup, Stack, TextField } from '@mui/material';
 import { centsAsEurosString, parseEuros } from '../Cents'
 
 function Breakdown(props) {
-  const { credit, open, onClose } = props;
+  const { credit, holders, open, onClose } = props;
   const [error, setError] = React.useState(false);
   const [amount, setAmount] = React.useState(credit);
   const [manual, setManual] = React.useState(false);
   const [manualAmount, setManualAmount] = React.useState(credit);
+  const [selectedHolder, setSelectedHolder] = React.useState(undefined);
   
   function handleCommit(event) {
-    alert("will save " + centsAsEurosString(amount) + " €");
+    alert("will save " + centsAsEurosString(amount) + " € supplied by " + selectedHolder.id + ".");
     onClose();
   }
   
@@ -53,6 +54,20 @@ function Breakdown(props) {
     setAmountWithValidation(newManualAmount);
   }
   
+  function formatHolders(holders) {
+    return holders.map((holder) => {
+      return {
+        id: holder.id,
+        label: holder.name
+      };
+    });
+  }
+  
+  function handleSelectedHolderChange(event, value) {
+    console.log(value);
+    setSelectedHolder(value);
+  }
+  
   return (
     <Dialog open={open} onClose={handleClose}>
       <DialogTitle>Ventiler la somme</DialogTitle>
@@ -73,7 +88,14 @@ function Breakdown(props) {
             <TextField InputProps={{readOnly: true}} label="Reste à ventiler (indicatif)" type="text" value={centsAsEurosString(credit - amount)} error={error} />
         </FormControl>
         <Autocomplete freeSolo forcePopupIcon={true} options={['A', 'B']} renderInput={(parameters) => <TextField {...parameters} label="Catégorie" margin="dense" />} />
-        <Autocomplete freeSolo forcePopupIcon={true} options={['A', 'B']} renderInput={(parameters) => <TextField {...parameters} label="Fournisseur" margin="dense" />} />
+        <Autocomplete
+          forcePopupIcon={true}
+          options={holders}
+          getOptionLabel={(option) => option.name}
+          renderOption={(props, option) => <Box component="li" {...props}><Chip avatar={<Avatar alt={option.name} src={"/avatar/" + option.id + ".png"} />} label={option.name} /></Box>}
+          renderInput={(parameters) => <TextField {...parameters} label="Fournisseur" margin="dense" />}
+          onChange={handleSelectedHolderChange}
+        />
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Annuler</Button>

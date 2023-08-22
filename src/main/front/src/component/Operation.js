@@ -53,7 +53,7 @@ function Operation(props) {
               <TableBody>
                 {
                   Object.entries(groupByCategory(operation.breakdown))
-                    .map((entry) => <Category key={'category-' + entry[0]} name={entry[0]} supplies={entry[1]} />)
+                    .map((entry) => <Category key={'category-' + entry[0]} name={entry[0]} supplies={entry[1]} account={operation.account} />)
                 }
               </TableBody>
             </Table>

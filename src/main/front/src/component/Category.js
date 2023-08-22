@@ -6,10 +6,27 @@ import Breakdown from './Breakdown';
 import {centsAsEurosString} from '../Cents';
 
 function Unsupplied(props) {
-  const { credit } = props;
+  const { credit, account } = props;
+  const [holders, setHolders] = React.useState([]);
   const [breakdownOpen, setBreakdownOpen] = React.useState(false);
   
   function handleCreate() {
+    if(account) {
+      const url = "http://localhost:8080/api/v1/accounts/" + account + "/holders";
+      fetch(url)
+        .then(response => {
+          if(response.ok) {
+            const json = response.json();
+            return json;
+          } else {
+            throw new Error('Response status to fetching "' + url + '" is ' + response.status);
+          }
+        })
+        .then(holders => {
+          return holders;
+        })
+        .then(setHolders);
+    }
     setBreakdownOpen(true);
   }
   
@@ -26,13 +43,13 @@ function Unsupplied(props) {
         onDelete={handleCreate}
         deleteIcon={<Tooltip title="Ventiler la somme"><AddCircleIcon /></Tooltip>}
       />
-      <Breakdown open={breakdownOpen} credit={credit} onClose={handleBreakdownClose} />
+      <Breakdown open={breakdownOpen} credit={credit} holders={holders} onClose={handleBreakdownClose} />
     </>
   );
 }
 
 function Supply(props) {
-  const { supplier, credit } = props;
+  const { supplier, credit, account } = props;
   
   function handleDelete() {
     console.log("TODO Delete breakdown");
@@ -50,17 +67,17 @@ function Supply(props) {
       />
     );
   } else {
-    return (<Unsupplied credit={credit} />);
+    return (<Unsupplied credit={credit} account={account} />);
   }
 }
 
 function Category(props) {
-  const { name, supplies } = props;
+  const { name, supplies, account } = props;
 
   return (
     <TableRow>
       <TableCell sx={ name.length > 0 ? {} : { color: "gray", fontStyle: "italic" } }>{name.length > 0 ? name : 'Non catégorisé'}</TableCell>
-      <TableCell>{supplies.map(supply => <Supply key={'supply-' + supply.supplier} supplier={supply.supplier} credit={supply.credit}/>)}</TableCell>
+      <TableCell>{supplies.map(supply => <Supply key={'supply-' + supply.supplier} supplier={supply.supplier} credit={supply.credit} account={account} />)}</TableCell>
     </TableRow>
   );
 }

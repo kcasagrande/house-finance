@@ -8,7 +8,9 @@ case class Iban private(
   countryCode: String,
   checkDigits: String,
   bban: String
-)
+) {
+  override def toString: String = countryCode + checkDigits + bban
+}
 
 object Iban {
   def fromString(ibanAsString: String): Try[Iban] =
