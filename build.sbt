@@ -21,7 +21,6 @@ lazy val root = (project in file("."))
       `http4s-dsl`,
       `http4s-ember-server`,
       `http4s-circe`,
-      `http4s-twirl`,
       `circe-literal`,
       pureconfig,
       `macwire-macros` % Provided,
