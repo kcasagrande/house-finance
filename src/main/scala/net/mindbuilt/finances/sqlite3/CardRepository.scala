@@ -9,9 +9,7 @@ import net.mindbuilt.finances.sqlite3.CardRepository._
 import net.mindbuilt.finances.{business => port}
 
 import java.sql.Connection
-import java.time.YearMonth
 import java.time.format.DateTimeFormatter
-import java.util.UUID
 import scala.language.implicitConversions
 
 class CardRepository(implicit val database: EitherT[IO, Throwable, Database])
@@ -79,9 +77,6 @@ class CardRepository(implicit val database: EitherT[IO, Throwable, Database])
 }
 
 object CardRepository {
-  private def uuid(columnName: String): RowParser[UUID] = str(columnName).map(UUID.fromString)
-  private def yearMonth(columnName: String): RowParser[YearMonth] = str(columnName).map(DateTimeFormatter.ofPattern("uuuu-MM").parse(_)).map(YearMonth.from)
-  
   implicit def cardToNamedParameters(card: Card): Seq[NamedParameter] =
     namedParameters(
       "number" -> card.number,
@@ -93,7 +88,7 @@ object CardRepository {
       "type" -> card.`type`
     )
   
-  val cardParser: RowParser[Card] = for {
+  private val cardParser: RowParser[Card] = for {
     number <- str("number")
     account <- iban("account_country_code", "account_check_digits", "account_bban")
     holder <- uuid("holder")

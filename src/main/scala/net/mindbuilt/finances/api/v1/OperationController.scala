@@ -42,13 +42,6 @@ object OperationController {
     case transferOperation: Operation.ByTransfer => transferOperationEncoder.apply(transferOperation)
   }
 
-  implicit def iterableEncoder[A](implicit elementEncoder: Encoder[A]): Encoder[Iterable[A]] = Encoder.instance {
-    (iterable: Iterable[A]) =>
-    json"""[
-             ${iterable.map(_.asJson)}
-           ]"""
-  }
-  
   implicit private val breakdownEncoder: Encoder[Breakdown] = Encoder.instance {
     (breakdown: Breakdown) =>
       json"""{

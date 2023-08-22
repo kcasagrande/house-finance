@@ -27,10 +27,10 @@ object Holder {
     def oneOf(individuals: Set[Holder.Single]): Multiple = Combination.Or.of(individuals)
     
     object Combination {
-      case object And extends Combination("ET") {
+      case object And extends Combination("AND") {
         override val of: Set[Holder.Single] => Multiple = (individuals: Set[Holder.Single]) => Multiple(this, individuals)
       }
-      case object Or extends Combination("OU") {
+      case object Or extends Combination("OR") {
         override val of: Set[Holder.Single] => Multiple = (individuals: Set[Holder.Single]) => Multiple(this, individuals)
       }
     }

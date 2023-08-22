@@ -2,16 +2,14 @@ package net.mindbuilt.finances
 
 import cats.effect.{ExitCode, IO, IOApp}
 import com.comcast.ip4s.IpLiteralSyntax
-import net.mindbuilt.finances.api.v1.BankService
 import org.http4s.HttpApp
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.Router
-import org.http4s.server.middleware.{CORS, CORSPolicy, ErrorAction, ErrorHandling}
+import org.http4s.server.middleware.{CORS, ErrorAction, ErrorHandling}
 
 object Main
   extends IOApp
     with Module
-    with front.Module
     with api.v1.Module
     with application.Module
     with sqlite3.Module
@@ -29,16 +27,15 @@ object Main
       )
     )
     
-  val apiRoot = "/api/v1"
+  private val apiRoot = "/api/v1"
   
   override def run(args: List[String]): IO[ExitCode] = EmberServerBuilder
     .default[IO]
     .withHost(ipv4"127.0.0.1")
     .withPort(port"8080")
     .withHttpApp(CORS.policy.withAllowOriginAll(withErrorLogging(Router(
-      "/banks" -> new BankService().apply(),
       apiRoot + "/operations" -> operationController(),
-      "" -> frontController()
+      apiRoot + "/accounts" -> accountController()
     ).orNotFound)))
     .build
     .use(_ => IO.never)

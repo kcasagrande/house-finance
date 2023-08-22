@@ -8,7 +8,8 @@ import cats.effect.kernel.Resource
 import net.mindbuilt.finances.business.{Bank, Bic, Holder, Iban}
 
 import java.sql.{Connection, DriverManager}
-import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.{LocalDate, YearMonth}
 import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
 import java.util.UUID
 import scala.language.implicitConversions
@@ -63,7 +64,9 @@ package object sqlite3
     } yield {
       bic
     }
-  
+
+  def yearMonth(columnName: String): RowParser[YearMonth] = str(columnName).map(DateTimeFormatter.ofPattern("uuuu-MM").parse(_)).map(YearMonth.from)
+
   def localDate(columnName: String): RowParser[LocalDate] = (row: Row) => str(columnName).apply(row)
     .flatMap { string: String =>
       Try {

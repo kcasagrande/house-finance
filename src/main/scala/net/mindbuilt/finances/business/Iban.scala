@@ -11,6 +11,15 @@ case class Iban private(
 )
 
 object Iban {
+  def fromString(ibanAsString: String): Try[Iban] =
+    for {
+      countryCode <- Try { ibanAsString.substring(0, 2) }
+      checkDigits <- Try { ibanAsString.substring(2, 4) }
+      bban <- Try { ibanAsString.substring(4) }
+      iban <- Iban(countryCode, checkDigits, bban)
+    } yield iban
+    
+  
   def apply(countryCode: String, checkDigits: String, bban: String): Try[Iban] =
     for {
       _ <- countryCode.matches("^\\p{Alpha}{2}$") orFailWith new IllegalArgumentException(s"""Country code should be 2 letters, was "$countryCode".""")
