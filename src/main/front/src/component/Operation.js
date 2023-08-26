@@ -47,6 +47,7 @@ function Operation(props) {
               <TableHead>
                 <TableRow>
                   <TableCell>Catégorie</TableCell>
+                  <TableCell>Montant</TableCell>
                   <TableCell>Fournisseurs</TableCell>
                 </TableRow>
               </TableHead>

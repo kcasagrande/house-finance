@@ -1,7 +1,6 @@
 import React from 'react';
-import { Avatar, Chip, TableRow, TableCell, Tooltip } from '@mui/material';
-import AddCircleIcon from '@mui/icons-material/AddCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
+import { Avatar, Button, Chip, Fab, FormControl, Icon, IconButton, Menu, MenuItem, Select, TableRow, TableCell, Tooltip } from '@mui/material';
+import { AddCircle, Balance, Cancel, CheckCircleOutline, Edit, Flaky, PendingOutlined } from '@mui/icons-material';
 import Breakdown from './Breakdown';
 import {centsAsEurosString} from '../Cents';
 
@@ -41,7 +40,7 @@ function Unsupplied(props) {
         variant="outlined"
         label={centsAsEurosString(credit) + ' €'}
         onDelete={handleCreate}
-        deleteIcon={<Tooltip title="Ventiler la somme"><AddCircleIcon /></Tooltip>}
+        deleteIcon={<Tooltip title="Ventiler la somme"><AddCircle /></Tooltip>}
       />
       <Breakdown open={breakdownOpen} credit={credit} holders={holders} onClose={handleBreakdownClose} />
     </>
@@ -63,7 +62,7 @@ function Supply(props) {
         avatar={<Avatar src={'/avatar/' + supplier + '.png'} />}
         label={(credit / 100.0) + ' €'}
         onDelete={handleDelete}
-        deleteIcon={<Tooltip title="Supprimer cette ventilation"><CancelIcon /></Tooltip>}
+        deleteIcon={<Tooltip title="Supprimer cette ventilation"><Cancel /></Tooltip>}
       />
     );
   } else {
@@ -71,15 +70,94 @@ function Supply(props) {
   }
 }
 
+function ActionButton(props) {
+  const { title, icon, onClick } = props;
+  
+  return (
+    <Tooltip title={title}><IconButton size="small" onClick={onClick}>{icon}</IconButton></Tooltip>
+  );
+}
+
+function getCategories() {
+  return [
+    {
+      name: 'Catégorie A',
+      value: 'TestCategoryA'
+    },
+    {
+      name: 'Catégorie B',
+      value: 'TestCategoryB'
+    },
+    {
+      name: 'Catégorie C',
+      value: 'TestCategoryC'
+    }
+  ];
+}
+
+function CategoryChooser(props) {
+  const { anchor, onSelect, onClose } = props;
+  const categories = getCategories();
+  
+  return (
+    <Menu
+      anchorEl={anchor}
+      open={!!anchor}
+      onClose={onClose}
+      anchorOrigin={{vertical: 'top', horizontal: 'right'}}
+      transformOrigin={{vertical: 'top', horizontal: 'right'}}
+    >
+      <MenuItem key="title" disabled={true}>Choisissez une catégorie</MenuItem>
+      <MenuItem key="new">Nouvelle catégorie…</MenuItem>
+      {categories.map((category) => <MenuItem key={"category-" + category.value} onClick={() => onSelect(category)}>{category.name}</MenuItem>)}
+    </Menu>
+  );
+}
+
+function Uncategorized(props) {
+  const { supplies, account } = props;
+  const [ anchor, setAnchor ] = React.useState(null);
+  
+  function handleClick(event) {
+    setAnchor(event.currentTarget);
+  }
+  
+  function handleCategorySelect(category) {
+    alert(`Will change category for ${JSON.stringify(category, null, 2)}`);
+    setAnchor(null);
+  }
+  
+  return (
+    <TableRow>
+      <TableCell sx={{ color: "gray", fontStyle: "italic" }}>
+        Non catégorisé
+        <ActionButton title="Changer la catégorie" icon={<Edit />} onClick={handleClick}>Non catégorisé</ActionButton>
+        <CategoryChooser anchor={anchor} onSelect={handleCategorySelect} onClose={() => {setAnchor(null);}} />
+      </TableCell>
+      <TableCell>
+        {centsAsEurosString(supplies.map(supply => supply.credit).reduce((sum, credit) => sum + credit, 0)) + ' €'}
+        <ActionButton title="Catégoriser la moitié" icon={<Flaky />} />
+        <ActionButton title="Catégoriser un montant arbitraire" icon={<PendingOutlined />} />
+      </TableCell>
+      <TableCell>{supplies.sort((supplyA, supplyB) => supplyA.supplier.localeCompare(supplyB.supplier)).map(supply => <Supply key={'supply-' + supply.supplier} supplier={supply.supplier} credit={supply.credit} account={account} />)}</TableCell>
+    </TableRow>
+  );
+}
+
 function Category(props) {
   const { name, supplies, account } = props;
 
-  return (
-    <TableRow>
-      <TableCell sx={ name.length > 0 ? {} : { color: "gray", fontStyle: "italic" } }>{name.length > 0 ? name : 'Non catégorisé'}</TableCell>
-      <TableCell>{supplies.map(supply => <Supply key={'supply-' + supply.supplier} supplier={supply.supplier} credit={supply.credit} account={account} />)}</TableCell>
-    </TableRow>
-  );
+  if(name.length > 0) {
+    return (
+      <TableRow>
+        <TableCell sx={ name.length > 0 ? {} : { color: "gray", fontStyle: "italic" } }>{name.length > 0 ? name : 'Non catégorisé'}</TableCell>
+        <TableCell>{centsAsEurosString(supplies.map(supply => supply.credit).reduce((sum, credit) => sum + credit, 0)) + ' €'}</TableCell>
+        <TableCell>{supplies.sort((supplyA, supplyB) => supplyA.supplier.localeCompare(supplyB.supplier)).map(supply => <Supply key={'supply-' + supply.supplier} supplier={supply.supplier} credit={supply.credit} account={account} />)}</TableCell>
+      </TableRow>
+    );
+  } else {
+    return <Uncategorized supplies={supplies} account={account} />
+  }
 }
 
 export default Category;
