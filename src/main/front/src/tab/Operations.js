@@ -1,6 +1,7 @@
 import Operation from '../component/Operation';
 import { Paper, TableContainer, Table, TableRow, TableCell, TableHead, TableBody } from '@mui/material';
 import { useEffect, useState } from 'react';
+import configuration from '../Configuration';
 
 function Operations({operations}) {
   const [initialized, setInitialized] = useState(false);
@@ -14,7 +15,7 @@ function Operations({operations}) {
   }, []);
   
   function refreshExistingCategories() {
-    return fetch("http://localhost:8080/api/v1/operations/categories")
+    return fetch(configuration.api + "/operations/categories")
       .then(response => {
         if(response.ok) {
           const json = response.json();
@@ -23,7 +24,7 @@ function Operations({operations}) {
           throw new Error('Response status is ' + response.status);
         }
       })
-      .then(categories => { return categories.toSorted((a, b) => a.localeCompare(b, 'fr')); })
+      .then(categories => { return categories.toSorted((a, b) => a.localeCompare(b, configuration.locale)); })
       .then(setExistingCategories);
   }
     

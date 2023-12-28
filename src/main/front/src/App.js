@@ -6,13 +6,14 @@ import MenuIcon from '@mui/icons-material/Menu';
 import UploadIcon from '@mui/icons-material/Upload';
 import TableRowsIcon from '@mui/icons-material/TableRows';
 import ManageSearchIcon from '@mui/icons-material/ManageSearch';
+import configuration from './Configuration';
 
 function App() {
   const [operations, setOperations] = React.useState([]);
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   
   function updateOperations() {
-    fetch("http://localhost:8080/api/v1/operations?from=2023-01-01&to=2023-12-31")
+    fetch(configuration.api + "/operations?from=2023-01-01&to=2023-12-31")
       .then(response => {
         if(response.ok) {
           const json = response.json();
