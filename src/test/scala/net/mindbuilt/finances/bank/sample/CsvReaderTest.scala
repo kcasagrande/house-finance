@@ -1,4 +1,4 @@
-package com.example.example.bank.sample
+package net.mindbuilt.finances.bank.sample
 
 import cats.effect.IO
 import cats.effect.testing.scalatest.AsyncIOSpec
