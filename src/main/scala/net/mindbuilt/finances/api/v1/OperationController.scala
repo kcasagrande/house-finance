@@ -27,6 +27,13 @@ class OperationController(
           case Left(throwable) => InternalServerError(throwable.getMessage)
           case Right(operations) => Ok(operations.map(_.asJson))
         }
+
+    case GET -> Root / "categories" => operationService.getAllCategories
+      .value
+      .flatMap {
+        case Left(throwable) => InternalServerError(throwable.getMessage)
+        case Right(categories) => Ok(categories.map(_.asJson))
+      }
   }
 }
 

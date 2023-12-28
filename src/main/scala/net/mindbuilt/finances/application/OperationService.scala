@@ -12,4 +12,7 @@ class OperationService(
 ) {
   def getAllOperations(from: LocalDate, to: LocalDate): EitherT[IO, Throwable, Seq[Operation]] =
     operationRepository.getByInterval(from to to)
+  
+  def getAllCategories: EitherT[IO, Throwable, Set[String]] =
+    operationRepository.getAllCategories
 }

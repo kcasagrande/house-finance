@@ -245,6 +245,11 @@ class OperationRepository(implicit val database: EitherT[IO, Throwable, Database
         )
     }
 
+  override def getAllCategories: EitherT[IO, Throwable, Set[String]] =
+    withConnection { implicit connection: Connection =>
+      executeQueryWithEffect("""SELECT DISTINCT "category" FROM "breakdown" WHERE "category" IS NOT NULL""")(str("category").*).map(_.toSet)
+    }
+    
   }
 
 object OperationRepository {
