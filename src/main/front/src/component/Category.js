@@ -78,44 +78,26 @@ function ActionButton(props) {
   );
 }
 
-function getCategories() {
-  return [
-    {
-      name: 'Catégorie A',
-      value: 'TestCategoryA'
-    },
-    {
-      name: 'Catégorie B',
-      value: 'TestCategoryB'
-    },
-    {
-      name: 'Catégorie C',
-      value: 'TestCategoryC'
-    }
-  ];
-}
-
-function CategoryChooser(props) {
-  const { anchor, onSelect, onClose } = props;
-  const categories = getCategories();
-  
+function CategoryChooser({ anchor, onSelect, onClose, existingCategories, refreshExistingCategories }) {
   return (
     <Menu
       anchorEl={anchor}
       open={!!anchor}
-      onClose={onClose}
+      onClose={(event, reason) => {
+        refreshExistingCategories();
+        onClose(event, reason);
+      }}
       anchorOrigin={{vertical: 'top', horizontal: 'right'}}
       transformOrigin={{vertical: 'top', horizontal: 'right'}}
     >
       <MenuItem key="title" disabled={true}>Choisissez une catégorie</MenuItem>
       <MenuItem key="new">Nouvelle catégorie…</MenuItem>
-      {categories.map((category) => <MenuItem key={"category-" + category.value} onClick={() => onSelect(category)}>{category.name}</MenuItem>)}
+      {existingCategories.map((category) => <MenuItem key={"category-" + category} onClick={() => onSelect(category)}>{category}</MenuItem>)}
     </Menu>
   );
 }
 
-function Uncategorized(props) {
-  const { supplies, account } = props;
+function Uncategorized({ supplies, account, existingCategories, refreshExistingCategories }) {
   const [ anchor, setAnchor ] = React.useState(null);
   
   function handleClick(event) {
@@ -132,7 +114,13 @@ function Uncategorized(props) {
       <TableCell sx={{ color: "gray", fontStyle: "italic" }}>
         Non catégorisé
         <ActionButton title="Changer la catégorie" icon={<Edit />} onClick={handleClick}>Non catégorisé</ActionButton>
-        <CategoryChooser anchor={anchor} onSelect={handleCategorySelect} onClose={() => {setAnchor(null);}} />
+        <CategoryChooser
+          anchor={anchor}
+          onSelect={handleCategorySelect}
+          onClose={() => {setAnchor(null);}}
+          existingCategories={existingCategories}
+          refreshExistingCategories={refreshExistingCategories}
+        />
       </TableCell>
       <TableCell>
         {centsAsEurosString(supplies.map(supply => supply.credit).reduce((sum, credit) => sum + credit, 0)) + ' €'}
@@ -144,9 +132,7 @@ function Uncategorized(props) {
   );
 }
 
-function Category(props) {
-  const { name, supplies, account } = props;
-
+function Category({ name, supplies, account, existingCategories, refreshExistingCategories }) {
   if(name.length > 0) {
     return (
       <TableRow>
@@ -156,7 +142,7 @@ function Category(props) {
       </TableRow>
     );
   } else {
-    return <Uncategorized supplies={supplies} account={account} />
+    return <Uncategorized supplies={supplies} account={account} existingCategories={existingCategories} refreshExistingCategories={refreshExistingCategories} />
   }
 }
 

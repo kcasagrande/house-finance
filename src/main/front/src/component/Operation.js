@@ -5,8 +5,7 @@ import Category from './Category';
 import OperationType from './OperationType';
 import { centsAsEurosString } from '../Cents'
 
-function Operation(props) {
-  const {operation} = props;
+function Operation({operation, existingCategories, refreshExistingCategories}) {
   const [open, setOpen] = React.useState(false);
   
   function groupByCategory(supplies) {
@@ -54,7 +53,16 @@ function Operation(props) {
               <TableBody>
                 {
                   Object.entries(groupByCategory(operation.breakdown))
-                    .map((entry) => <Category key={'category-' + entry[0]} name={entry[0]} supplies={entry[1]} account={operation.account} />)
+                    .map((entry) =>
+                      <Category
+                        key={'category-' + entry[0]}
+                        name={entry[0]}
+                        supplies={entry[1]}
+                        account={operation.account}
+                        existingCategories={existingCategories}
+                        refreshExistingCategories={refreshExistingCategories}
+                      />
+                    )
                 }
               </TableBody>
             </Table>
