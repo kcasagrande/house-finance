@@ -1,7 +1,7 @@
 import './App.css';
 import React from 'react';
-import { Outlet } from 'react-router-dom';
-import { Box, Drawer, IconButton, Link, MenuList, MenuItem } from '@mui/material';
+import { Outlet, Link } from 'react-router-dom';
+import { Box, Drawer, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import InsightsIcon from '@mui/icons-material/Insights';
 import ManageSearchIcon from '@mui/icons-material/ManageSearch';
@@ -27,17 +27,52 @@ function App() {
         onClose={() => setDrawerOpen(false)}
       >
         <Box
-          sx={{ width: 250 }}
+          sx={{ width: 300 }}
           role="presentation"
           onClick={() => setDrawerOpen(false)}
         >
-          <MenuList>
-            <MenuItem><Link underline="none" to={`/`}><HomeIcon />&nbsp;Accueil</Link></MenuItem>
-            <MenuItem><TableRowsIcon />&nbsp;Traitement de masse</MenuItem>
-            <MenuItem><UploadIcon />&nbsp;Import de données</MenuItem>
-            <MenuItem><InsightsIcon />&nbsp;Rapports</MenuItem>
-            <MenuItem><Link underline="none" to={`/details`}><ManageSearchIcon />&nbsp;Détails</Link></MenuItem>
-          </MenuList>
+          <List>
+            <ListItem disablePadding>
+              <ListItemButton component={Link} to={`/`}>
+                <ListItemIcon>
+                  <HomeIcon />
+                </ListItemIcon>
+                <ListItemText primary="Accueil" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton component={Link}>
+                <ListItemIcon>
+                  <TableRowsIcon />
+                </ListItemIcon>
+                <ListItemText primary="Traitement de masse" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton component={Link}>
+                <ListItemIcon>
+                  <UploadIcon />
+                </ListItemIcon>
+                <ListItemText primary="Import de données" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton component={Link}>
+                <ListItemIcon>
+                  <InsightsIcon />
+                </ListItemIcon>
+                <ListItemText primary="Rapports" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton component={Link} to={`/details`}>
+                <ListItemIcon>
+                  <ManageSearchIcon />
+                </ListItemIcon>
+                <ListItemText primary="Détails" />
+              </ListItemButton>
+            </ListItem>
+          </List>
         </Box>
       </Drawer>
       <Outlet />
