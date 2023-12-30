@@ -3,16 +3,31 @@ import { Paper, TableContainer, Table, TableRow, TableCell, TableHead, TableBody
 import { useEffect, useState } from 'react';
 import configuration from '../Configuration';
 
-function Operations({operations}) {
+function Operations() {
   const [initialized, setInitialized] = useState(false);
   const [existingCategories, setExistingCategories] = useState([]);
+  const [operations, setOperations] = useState([]);
   
   useEffect(() => {
     if(!initialized) {
+      refreshOperations();
       refreshExistingCategories();
       setInitialized(true);
     }
   }, []);
+  
+  function refreshOperations() {
+    return fetch(configuration.api + "/operations?from=2023-01-01&to=2023-12-31")
+      .then(response => {
+        if(response.ok) {
+          const json = response.json();
+          return json;
+        } else {
+          throw new Error('Response status is ' + response.status);
+        }
+      })
+      .then(setOperations);
+  }
   
   function refreshExistingCategories() {
     return fetch(configuration.api + "/operations/categories")

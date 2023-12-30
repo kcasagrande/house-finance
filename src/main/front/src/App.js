@@ -1,30 +1,18 @@
 import './App.css';
 import React from 'react';
-import Operations from './tab/Operations';
-import { Box, Button, Drawer, IconButton, List, ListItem } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import UploadIcon from '@mui/icons-material/Upload';
-import TableRowsIcon from '@mui/icons-material/TableRows';
+import { Outlet } from 'react-router-dom';
+import { Box, Drawer, IconButton, Link, MenuList, MenuItem } from '@mui/material';
+import HomeIcon from '@mui/icons-material/Home';
+import InsightsIcon from '@mui/icons-material/Insights';
 import ManageSearchIcon from '@mui/icons-material/ManageSearch';
+import MenuIcon from '@mui/icons-material/Menu';
+import TableRowsIcon from '@mui/icons-material/TableRows';
+import UploadIcon from '@mui/icons-material/Upload';
 import configuration from './Configuration';
 
 function App() {
-  const [operations, setOperations] = React.useState([]);
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   
-  function updateOperations() {
-    fetch(configuration.api + "/operations?from=2023-01-01&to=2023-12-31")
-      .then(response => {
-        if(response.ok) {
-          const json = response.json();
-          return json;
-        } else {
-          throw new Error('Response status is ' + response.status);
-        }
-      })
-      .then(setOperations);
-  }
-
   return (
     <div key="left" className="App">
       <IconButton
@@ -33,7 +21,6 @@ function App() {
        >
         <MenuIcon />
       </IconButton>
-      <Button variant="contained" onClick={updateOperations}>Actualiser</Button>
       <Drawer
         anchor="left"
         open={drawerOpen}
@@ -44,14 +31,16 @@ function App() {
           role="presentation"
           onClick={() => setDrawerOpen(false)}
         >
-          <List>
-            <ListItem><UploadIcon />&nbsp;Import de données</ListItem>
-            <ListItem><TableRowsIcon />&nbsp;Traitement de masse</ListItem>
-            <ListItem><ManageSearchIcon />&nbsp;Détails</ListItem>
-          </List>
+          <MenuList>
+            <MenuItem><Link underline="none" to={`/`}><HomeIcon />&nbsp;Accueil</Link></MenuItem>
+            <MenuItem><TableRowsIcon />&nbsp;Traitement de masse</MenuItem>
+            <MenuItem><UploadIcon />&nbsp;Import de données</MenuItem>
+            <MenuItem><InsightsIcon />&nbsp;Rapports</MenuItem>
+            <MenuItem><Link underline="none" to={`/details`}><ManageSearchIcon />&nbsp;Détails</Link></MenuItem>
+          </MenuList>
         </Box>
       </Drawer>
-      <Operations operations={operations}/>
+      <Outlet />
     </div>
   );
 }
