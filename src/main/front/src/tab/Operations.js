@@ -1,5 +1,5 @@
 import Operation from '../component/Operation';
-import { Paper, TableContainer, Table, TableRow, TableCell, TableHead, TableBody } from '@mui/material';
+import { Box, LinearProgress, Paper, TableContainer, Table, TableRow, TableCell, TableHead, TableBody } from '@mui/material';
 import { useEffect, useState } from 'react';
 import configuration from '../Configuration';
 
@@ -10,9 +10,11 @@ function Operations() {
   
   useEffect(() => {
     if(!initialized) {
-      refreshOperations();
-      refreshExistingCategories();
-      setInitialized(true);
+      Promise.all([
+        refreshOperations(),
+        refreshExistingCategories()
+      ])
+        .finally(() => setInitialized(true));
     }
   }, []);
   
@@ -43,6 +45,18 @@ function Operations() {
       .then(setExistingCategories);
   }
     
+  function LoadingAnimation({initialized}) {
+    if(!initialized) {
+      return (
+        <Box sx={{width: '100%'}}>
+          <LinearProgress />
+        </Box>
+      );
+    } else {
+      return null;
+    }
+  }
+    
   return (
     <TableContainer component={Paper} id="operations">
       <Table aria-label="collapsible table">
@@ -60,6 +74,7 @@ function Operations() {
           </TableRow>
         </TableHead>
         <TableBody>
+          <LoadingAnimation initialized={initialized} />
           {operations.map(operation =>
             <Operation
               key={'operation-' + operation.id}
