@@ -80,14 +80,13 @@ function ActionButton(props) {
 
 function CategoryChooser({ anchor, onSelect, onClose, existingCategories, refreshExistingCategories, category }) {
   const [value, setValue] = React.useState(category);
-  const [label, setLabel] = React.useState((!value)?"Non catégorisé":null);
   const [isOpen, setOpen] = React.useState(false);
   
   return (
     <Autocomplete
       freeSolo
       options={existingCategories}
-      renderInput={(parameters) => <TextField {...parameters} label={isOpen?null:label} />}
+      renderInput={(parameters) => <TextField {...parameters} label={(!isOpen && !value)?"Non catégorisé":"Catégorie"} />}
       onOpen={() => {
         setOpen(true);
       }}
@@ -96,7 +95,6 @@ function CategoryChooser({ anchor, onSelect, onClose, existingCategories, refres
       }}
       onChange={(event, newCategory, reason) => {
         setValue(newCategory);
-        setLabel(newCategory?null:"Non catégorisé");
       }}
     />
   );
