@@ -1,7 +1,8 @@
 import React from 'react';
-import { Autocomplete, Avatar, Button, Chip, Fab, FormControl, Icon, IconButton, Menu, MenuItem, Select, TableRow, TableCell, TextField, Tooltip } from '@mui/material';
+import { Autocomplete, Avatar, Button, Chip, Fab, FormControl, Icon, IconButton, Menu, MenuItem, Select, Stack, TableRow, TableCell, TextField, Tooltip } from '@mui/material';
 import { AddCircle, Balance, Cancel, CheckCircleOutline, Flaky, PendingOutlined } from '@mui/icons-material';
 import Breakdown from './Breakdown';
+import SaveStatusIndicator from './SaveStatusIndicator';
 import {centsAsEurosString} from '../Cents';
 
 function Unsupplied(props) {
@@ -78,27 +79,48 @@ function ActionButton(props) {
   );
 }
 
-function CategoryChooser({ anchor, onSelect, onClose, existingCategories, refreshExistingCategories, category }) {
+function CategoryChooser({ anchor, existingCategories, refreshExistingCategories, category }) {
   const [value, setValue] = React.useState(category);
   const [isOpen, setOpen] = React.useState(false);
+  const [saveState, setSaveState] = React.useState(undefined);
+  
+  function save(setSaveState) {
+    setSaveState('pending');
+    return new Promise((resolve, reject) => {
+      setTimeout(() => { resolve(); }, 2000);
+    });
+  }
+  
+  function clear(setSaveState) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => { setSaveState(undefined); resolve(); }, 2000);
+    });
+  }
   
   return (
-    <Autocomplete
-      freeSolo
-      autoComplete
-      options={existingCategories}
-      forcePopupIcon={true}
-      renderInput={(parameters) => <TextField {...parameters} label={(!isOpen && !value)?"Non catégorisé":"Catégorie"} />}
-      onOpen={() => {
-        setOpen(true);
-      }}
-      onClose={() => {
-        setOpen(false);
-      }}
-      onChange={(event, newCategory, reason) => {
-        setValue(newCategory);
-      }}
-    />
+    <Stack direction="row" alignItems="center" spacing={2}>
+      <Autocomplete
+        freeSolo
+        autoComplete
+        options={existingCategories}
+        forcePopupIcon={true}
+        renderInput={(parameters) => <TextField {...parameters} label={(!isOpen && !value)?"Non catégorisé":"Catégorie"} />}
+        onOpen={() => {
+          setOpen(true);
+        }}
+        onClose={() => {
+          setOpen(false);
+        }}
+        onChange={(event, newCategory, reason) => {
+          setValue(newCategory);
+          save(setSaveState)
+            .then(() => { setSaveState('success'); })
+            .then(() => { clear(setSaveState); });
+        }}
+        sx={{width: 300}}
+      />
+      <SaveStatusIndicator state={saveState} />
+    </Stack>
   );
 }
 
@@ -119,8 +141,6 @@ function Uncategorized({ supplies, account, existingCategories, refreshExistingC
       <TableCell sx={{ color: "gray", fontStyle: "italic" }}>
         <CategoryChooser
           anchor={anchor}
-          onSelect={handleCategorySelect}
-          onClose={() => {setAnchor(null);}}
           existingCategories={existingCategories}
           refreshExistingCategories={refreshExistingCategories}
         />
