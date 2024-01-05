@@ -48,9 +48,13 @@ function Operations() {
   function LoadingAnimation({initialized}) {
     if(!initialized) {
       return (
-        <Box sx={{width: '100%'}}>
-          <LinearProgress />
-        </Box>
+        <TableRow>
+          <TableCell colSpan={9}>
+            <Box sx={{width: '100%'}}>
+              <LinearProgress />
+            </Box>
+          </TableCell>
+        </TableRow>
       );
     } else {
       return null;
