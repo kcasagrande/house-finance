@@ -1,6 +1,6 @@
 import React from 'react';
 import { Autocomplete, Avatar, Button, Chip, Fab, FormControl, Icon, IconButton, Menu, MenuItem, Select, TableRow, TableCell, TextField, Tooltip } from '@mui/material';
-import { AddCircle, Balance, Cancel, CheckCircleOutline, Edit, Flaky, PendingOutlined } from '@mui/icons-material';
+import { AddCircle, Balance, Cancel, CheckCircleOutline, Flaky, PendingOutlined } from '@mui/icons-material';
 import Breakdown from './Breakdown';
 import {centsAsEurosString} from '../Cents';
 
@@ -85,7 +85,9 @@ function CategoryChooser({ anchor, onSelect, onClose, existingCategories, refres
   return (
     <Autocomplete
       freeSolo
+      autoComplete
       options={existingCategories}
+      forcePopupIcon={true}
       renderInput={(parameters) => <TextField {...parameters} label={(!isOpen && !value)?"Non catégorisé":"Catégorie"} />}
       onOpen={() => {
         setOpen(true);
