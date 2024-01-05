@@ -1,5 +1,5 @@
 import React from 'react';
-import { Avatar, Button, Chip, Fab, FormControl, Icon, IconButton, Menu, MenuItem, Select, TableRow, TableCell, Tooltip } from '@mui/material';
+import { Autocomplete, Avatar, Button, Chip, Fab, FormControl, Icon, IconButton, Menu, MenuItem, Select, TableRow, TableCell, TextField, Tooltip } from '@mui/material';
 import { AddCircle, Balance, Cancel, CheckCircleOutline, Edit, Flaky, PendingOutlined } from '@mui/icons-material';
 import Breakdown from './Breakdown';
 import {centsAsEurosString} from '../Cents';
@@ -78,22 +78,27 @@ function ActionButton(props) {
   );
 }
 
-function CategoryChooser({ anchor, onSelect, onClose, existingCategories, refreshExistingCategories }) {
+function CategoryChooser({ anchor, onSelect, onClose, existingCategories, refreshExistingCategories, category }) {
+  const [value, setValue] = React.useState(category);
+  const [label, setLabel] = React.useState((!value)?"Non catégorisé":null);
+  const [isOpen, setOpen] = React.useState(false);
+  
   return (
-    <Menu
-      anchorEl={anchor}
-      open={!!anchor}
-      onClose={(event, reason) => {
-        refreshExistingCategories();
-        onClose(event, reason);
+    <Autocomplete
+      freeSolo
+      options={existingCategories}
+      renderInput={(parameters) => <TextField {...parameters} label={isOpen?null:label} />}
+      onOpen={() => {
+        setOpen(true);
       }}
-      anchorOrigin={{vertical: 'top', horizontal: 'right'}}
-      transformOrigin={{vertical: 'top', horizontal: 'right'}}
-    >
-      <MenuItem key="title" disabled={true}>Choisissez une catégorie</MenuItem>
-      <MenuItem key="new">Nouvelle catégorie…</MenuItem>
-      {existingCategories.map((category) => <MenuItem key={"category-" + category} onClick={() => onSelect(category)}>{category}</MenuItem>)}
-    </Menu>
+      onClose={() => {
+        setOpen(false);
+      }}
+      onChange={(event, newCategory, reason) => {
+        setValue(newCategory);
+        setLabel(newCategory?null:"Non catégorisé");
+      }}
+    />
   );
 }
 
@@ -112,8 +117,6 @@ function Uncategorized({ supplies, account, existingCategories, refreshExistingC
   return (
     <TableRow>
       <TableCell sx={{ color: "gray", fontStyle: "italic" }}>
-        Non catégorisé
-        <ActionButton title="Changer la catégorie" icon={<Edit />} onClick={handleClick}>Non catégorisé</ActionButton>
         <CategoryChooser
           anchor={anchor}
           onSelect={handleCategorySelect}
