@@ -13,6 +13,7 @@ sealed trait Operation extends Product {
   def valueDate: LocalDate
   def accountDate: LocalDate
   def breakdown: Seq[Operation.Breakdown]
+  def withBreakdown(breakdown: Seq[Operation.Breakdown]): Operation
 }
 
 object Operation {
@@ -20,14 +21,16 @@ object Operation {
   
   case class ByCard(
     override val id: Operation.Id,
-    val card: Card.Number,
-    val reference: Option[String],
+    card: Card.Number,
+    reference: Option[String],
     override val label: String,
     override val operationDate: LocalDate,
     override val valueDate: LocalDate,
     override val accountDate: LocalDate,
     override val breakdown: Seq[Breakdown]
-  ) extends Operation
+  ) extends Operation {
+    override def withBreakdown(breakdown: Seq[Breakdown]): ByCard = this.copy(breakdown = breakdown)
+  }
   
   object ByCard {
     def apply(
@@ -52,7 +55,9 @@ object Operation {
     override val valueDate: LocalDate,
     override val accountDate: LocalDate,
     override val breakdown: Seq[Breakdown]
-  ) extends Operation
+  ) extends Operation {
+    override def withBreakdown(breakdown: Seq[Breakdown]): ByCheck = this.copy(breakdown = breakdown)
+  }
   
   object ByCheck {
     def apply(
@@ -77,7 +82,9 @@ object Operation {
     override val valueDate: LocalDate,
     override val accountDate: LocalDate,
     override val breakdown: Seq[Breakdown]
-  ) extends Operation
+  ) extends Operation {
+    override def withBreakdown(breakdown: Seq[Breakdown]): ByDebit = this.copy(breakdown = breakdown)
+  }
   
   object ByDebit {
     def apply(
@@ -103,7 +110,9 @@ object Operation {
     override val accountDate: LocalDate,
     otherParty: Option[Iban],
     override val breakdown: Seq[Breakdown]
-  ) extends Operation
+  ) extends Operation {
+    override def withBreakdown(breakdown: Seq[Breakdown]): ByTransfer = this.copy(breakdown = breakdown)
+  }
   
   object ByTransfer {
     def apply(

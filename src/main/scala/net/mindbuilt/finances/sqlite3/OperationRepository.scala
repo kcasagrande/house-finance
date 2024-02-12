@@ -230,8 +230,8 @@ class OperationRepository(implicit val database: EitherT[IO, Throwable, Database
      )(operationParser.*)
         .map(_
           .groupBy(_._1)
-          .map(entry => entry._1 -> entry._2.map(_._2)).toSeq
-          .map {
+          .map(entry => entry._1 -> entry._2.map(_._2)).toSet
+          .map { entry: (Operation, List[Breakdown]) => entry match {
             case (Operation.ByCard(id, card, reference, label, operationDate, valueDate, accountDate, _), breakdown) =>
               Operation.ByCard(id, card, reference, label, operationDate, valueDate, accountDate, breakdown)
             case (Operation.ByCheck(id, account, number, label, operationDate, valueDate, accountDate, _), breakdown) =>
@@ -240,7 +240,7 @@ class OperationRepository(implicit val database: EitherT[IO, Throwable, Database
               Operation.ByDebit(id, account, reference, label, operationDate, valueDate, accountDate, breakdown)
             case (Operation.ByTransfer(id, account, reference, label, operationDate, valueDate, accountDate, otherParty, _), breakdown) =>
               Operation.ByTransfer(id, account, reference, label, operationDate, valueDate, accountDate, otherParty, breakdown)
-          }
+          }}
           .headOption
         )
     }
