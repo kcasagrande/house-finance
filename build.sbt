@@ -26,7 +26,8 @@ lazy val root = (project in file("."))
       `macwire-macros` % Provided,
       scalatest % Test,
       `cats-effect-testing-scalatest` % Test,
-      `liquibase` % Test
+      `liquibase` % Test,
+      `http4s-client` % Test
     )
   )
 
