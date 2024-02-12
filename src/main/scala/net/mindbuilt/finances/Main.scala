@@ -13,6 +13,7 @@ object Main
     with api.v1.Module
     with application.Module
     with sqlite3.Module
+    with sqlite3.DatabaseModule
 {
   private def withErrorLogging(httpApp: HttpApp[IO]) =
     ErrorHandling.Recover.total(
