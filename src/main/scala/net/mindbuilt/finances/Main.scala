@@ -36,7 +36,8 @@ object Main
     .withPort(port"8080")
     .withHttpApp(CORS.policy.withAllowOriginAll(withErrorLogging(Router(
       apiRoot + "/operations" -> operationController(),
-      apiRoot + "/accounts" -> accountController()
+      apiRoot + "/accounts" -> accountController(),
+      apiRoot + "/statements" -> statementController()
     ).orNotFound)))
     .build
     .use(_ => IO.never)

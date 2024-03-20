@@ -1,7 +1,7 @@
 package net.mindbuilt.finances.application
 
 import com.softwaremill.macwire.wire
-import net.mindbuilt.finances.business.{AccountRepository, OperationRepository}
+import net.mindbuilt.finances.business.{AccountRepository, CardRepository, OperationRepository}
 
 trait Module
 {
@@ -9,4 +9,6 @@ trait Module
   def operationRepository: OperationRepository
   lazy val accountService: AccountService = wire[AccountService]
   def accountRepository: AccountRepository
+  lazy val statementService: StatementService = wire[StatementService]
+  def cardRepository: CardRepository
 }

@@ -4,7 +4,7 @@ import anorm.SqlParser._
 import anorm._
 import cats.data.EitherT
 import cats.effect.IO
-import net.mindbuilt.finances.business.Card
+import net.mindbuilt.finances.business.{Card, Iban}
 import net.mindbuilt.finances.sqlite3.CardRepository._
 import net.mindbuilt.finances.{business => port}
 
@@ -50,6 +50,33 @@ class CardRepository(implicit val database: EitherT[IO, Throwable, Database])
       ):_*
     )(cardParser.singleOpt)
   }
+
+  override def getByAccount(account: Iban): EitherT[IO, Throwable, Set[Card]] =
+    withConnection { implicit connection: Connection =>
+      executeQueryWithEffect(
+        """SELECT
+          |  "number",
+          |  "account_country_code",
+          |  "account_check_digits",
+          |  "account_bban",
+          |  "holder",
+          |  "expiration",
+          |  "type"
+          |FROM "card"
+          |WHERE
+          |  "account_country_code"={accountCountryCode}
+          |AND
+          |  "account_check_digits"={accountCheckDigits}
+          |AND
+          |  "account_bban"={accountBban}
+          |""".stripMargin,
+        namedParameters(
+          "accountCountryCode" -> account.countryCode,
+          "accountCheckDigits" -> account.checkDigits,
+          "accountBban" -> account.bban
+        ):_*
+      )(cardParser.set)
+    }
 
   override def save(card: Card): EitherT[IO, Throwable, Unit] =
     withConnection { implicit connection: Connection =>
