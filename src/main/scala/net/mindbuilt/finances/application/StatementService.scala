@@ -7,7 +7,7 @@ import fs2.data.csv._
 import fs2.data.csv.lenient.attemptDecodeUsingHeaders
 import fs2.io.file.{Files, Path}
 import fs2.text.lines
-import net.mindbuilt.finances.Helpers.ExtendedSeqOfEitherT
+import net.mindbuilt.finances.Helpers._
 import net.mindbuilt.finances.application.StatementService._
 import net.mindbuilt.finances.business.{AccountRepository, Card, CardRepository, Iban, Operation, OperationRepository, Statement}
 import net.mindbuilt.finances.{Cents, IntToCents}
@@ -17,7 +17,6 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit.DAYS
 import java.util.{Locale, UUID}
-import scala.annotation.nowarn
 import scala.language.{implicitConversions, postfixOps}
 import scala.util.matching.Regex
 import scala.util.{Failure, Success, Try}
@@ -58,30 +57,6 @@ class StatementService(
 }
 
 object StatementService {
-
-  implicit class ExtendedEither(either: Either.type) {
-    def left[B]: ExtendedEither.LeftPartiallyApplied[B] = new ExtendedEither.LeftPartiallyApplied[B]
-
-    def right[A]: ExtendedEither.RightPartiallyApplied[A] = new ExtendedEither.RightPartiallyApplied[A]
-  }
-
-  object ExtendedEither {
-    class RightPartiallyApplied[A](
-      @nowarn
-      private val dummy: Boolean = true
-    )
-      extends AnyVal {
-      def apply[B](value: B): Either[A, B] = Right[A, B](value)
-    }
-
-    class LeftPartiallyApplied[B](
-      @nowarn
-      private val dummy: Boolean = true
-    )
-      extends AnyVal {
-      def apply[A](value: A): Either[A, B] = Left[A, B](value)
-    }
-  }
 
   case class MultipleCsvExceptions(csvExceptions: Seq[CsvException])
     extends Throwable {
