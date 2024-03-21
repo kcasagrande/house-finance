@@ -7,7 +7,7 @@ import fs2.data.csv._
 import fs2.data.csv.lenient.attemptDecodeUsingHeaders
 import fs2.io.file.{Files, Path}
 import fs2.text.lines
-import net.mindbuilt.finances.Helpers.ExtendedListOfEitherT
+import net.mindbuilt.finances.Helpers.ExtendedSeqOfEitherT
 import net.mindbuilt.finances.application.StatementService._
 import net.mindbuilt.finances.business.{AccountRepository, Card, CardRepository, Iban, Operation, OperationRepository, Statement}
 import net.mindbuilt.finances.{Cents, IntToCents}
