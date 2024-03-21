@@ -11,6 +11,7 @@ import fs2.text.lines
 import net.mindbuilt.finances.application.StatementService._
 import net.mindbuilt.finances.business.{AccountRepository, Card, CardRepository, Iban, Operation, OperationRepository, Statement}
 import net.mindbuilt.finances.{Cents, IntToCents}
+import net.mindbuilt.finances.Helpers.ExtendedListOfEitherT
 
 import java.text.NumberFormat
 import java.time.LocalDate
@@ -161,10 +162,4 @@ object StatementService {
       .map(_.head)
   }
 
-  implicit class ExtendedListOfEitherT[F[_] : Monad, A, B](listOfEitherT: List[EitherT[F, A, B]]) {
-    def traverse: EitherT[F, A, List[B]] =
-      listOfEitherT.foldLeft(EitherT.pure[F, A](List.empty[B])) { (eitherTOfList, eitherTOfElement) =>
-        eitherTOfList.flatMap(list => eitherTOfElement.map(element => list :+ element))
-      }
-  }
 }
