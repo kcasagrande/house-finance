@@ -25,10 +25,14 @@ class StatementService(
   accountRepository: AccountRepository,
   operationRepository: OperationRepository,
   cardRepository: CardRepository
+)(implicit
+  operationIdGenerator: () => Operation.Id = () => UUID.randomUUID()
 ) {
   def `import`(account: Iban, content: Stream[IO, String]): EitherT[IO, Throwable, Int] = {
-    val cardRules = Files[IO].readUtf8(Path.fromNioPath(java.nio.file.Paths.get("src/main/resources/rules.d/card.txt"))).through(lines).map(_.r)
+    val rulesDirectory = "src/main/resources/rules.d/"
     for {
+      cardRules <- EitherT.liftF(Files[IO].readUtf8(Path.fromNioPath(java.nio.file.Paths.get(rulesDirectory + "card.txt"))).through(lines).map(_.r).compile.toList)
+      debitRules <- EitherT.liftF(Files[IO].readUtf8(Path.fromNioPath(java.nio.file.Paths.get(rulesDirectory + "debit.txt"))).through(lines).map(_.r).compile.toList)
       cards <- cardRepository.getByAccount(account)
       operations <- EitherT(content
         .through(attemptDecodeUsingHeaders[Statement.Row](';'))
@@ -48,7 +52,7 @@ class StatementService(
           }
         })
       )
-        .flatMap(_.map { statementRow => statementRowToOperation(statementRow, cards.map(_.number), cardRules) }.traverse)
+        .flatMap(statementRows => EitherT.fromEither[IO](statementRows.map { statementRow => statementRowToOperation(statementRow, account, cards.map(_.number), cardRules, debitRules) }.traverse))
     } yield {
       println(operations.mkString("\n"))
       operations.length
@@ -103,21 +107,68 @@ object StatementService {
     }
   }
 
+  private def buildCardOperation(
+    cards: Set[Card.Number]
+  )(implicit
+    operationIdGenerator: () => Operation.Id = () => UUID.randomUUID()
+  ): (Regex.Match, Statement.Row) => Either[Throwable, Operation.ByCard] = { (regexMatch, statementRow) =>
+    for {
+      cardSuffix <- regexMatch.groupEither("cardSuffix")
+      incompleteDate <- regexMatch.groupEither("incompleteDate")
+      card <- cards.find(_.endsWith(cardSuffix)).toRight(new NoSuchElementException("Unable to find a card ending with %s.".format(cardSuffix)))
+      operationDate <- computeOperationDate(incompleteDate, statementRow.date)
+    } yield {
+      Operation.ByCard(
+        operationIdGenerator(),
+        card,
+        None,
+        statementRow.libelle,
+        statementRow.credit - statementRow.debit,
+        operationDate,
+        statementRow.dateValeur,
+        statementRow.date
+      )
+    }
+  }
+
+  private def buildDebitOperation(
+    account: Iban
+  )(
+    implicit
+    operationIdGenerator: () => Operation.Id = () => UUID.randomUUID()
+  ): (Regex.Match, Statement.Row) => Either[Throwable, Operation.ByDebit] = { (_, statementRow) =>
+    Either.right[Throwable](
+      Operation.ByDebit(
+        operationIdGenerator(),
+        account,
+        None,
+        statementRow.libelle,
+        statementRow.credit - statementRow.debit,
+        statementRow.dateValeur,
+        statementRow.dateValeur,
+        statementRow.date
+      )
+    )
+  }
+
   def statementRowToOperation(
     statementRow: Statement.Row,
+    account: Iban,
     cardsOfAccount: Set[Card.Number] = Set.empty[Card.Number],
-    cardRules: Stream[IO, Regex]
-  )(implicit operationIdGenerator: () => Operation.Id = () => UUID.randomUUID()): EitherT[IO, Throwable, Operation] = {
-    for {
-      groups <- EitherT.liftF(cardRules.collectFirst { rule => statementRow.libelle match {
-        case rule(cardSuffix, incompleteDate) => (cardSuffix, incompleteDate)
-      }}.compile.toList)
-        .subflatMap(_.headOption.toRight(new MatchError("No rule matching row label \"%s\".".format(statementRow.libelle))))
-      card <- EitherT.fromOption[IO](cardsOfAccount.find(_.endsWith(groups._1)), new NoSuchElementException("Unable to find a card ending with %s.".format(groups._1)))
-      operationDate <- EitherT.fromEither[IO](computeOperationDate(groups._2, statementRow.date))
-    } yield {
-      Operation.ByCard(operationIdGenerator(), card, None, statementRow.libelle, statementRow.credit - statementRow.debit, operationDate, statementRow.dateValeur, statementRow.date)
-    }
+    cardRules: Seq[Regex],
+    debitRules: Seq[Regex]
+  )(implicit
+    operationIdGenerator: () => Operation.Id
+  ): Either[Throwable, Operation] = {
+    val matchError: Throwable = new MatchError("No rule matching row label \"%s\".".format(statementRow.libelle))
+    val allRules = (cardRules.map(_ -> buildCardOperation(cardsOfAccount)) ++
+      debitRules.map(_ -> buildDebitOperation(account))).toMap
+    allRules.find(_._1.matches(statementRow.libelle))
+      .flatMap {
+        case (regex, buildOperation) => regex.findFirstMatchIn(statementRow.libelle)
+          .map(buildOperation(_, statementRow))
+      }
+      .getOrElse(Either.left[Operation](matchError))
   }
 
   private def computeOperationDate(operationDateAsString: String, accountDate: LocalDate): Either[Throwable, LocalDate] = {
