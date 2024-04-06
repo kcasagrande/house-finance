@@ -5,6 +5,7 @@ target/
 /.idea/
 /tags
 /src/main/resources/application.conf
+/src/main/resources/rules.d/
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
