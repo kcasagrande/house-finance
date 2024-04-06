@@ -110,6 +110,25 @@ class StatementServiceTest
       actual.value shouldEqual expected
     }
 
+    "given a credit by transfer" in {
+      val statementRow = Statement.Row(2024 \ 1 \ 1, 2024 \ 1 \ 1, "VIREMENT EN VOTRE FAVEUR BLABLABLA BLABLA", 0.cents, 550.cents)
+      val operationId = UUID.randomUUID()
+      implicit val operationIdGenerator: () => Operation.Id = () => operationId
+      val expected = Operation.ByTransfer(
+        operationId,
+        account,
+        None,
+        "VIREMENT EN VOTRE FAVEUR BLABLABLA BLABLA",
+        550.cents,
+        2024 \ 1 \ 1,
+        2024 \ 1 \ 1,
+        2024 \ 1 \ 1,
+        None
+      )
+      val actual = StatementService.statementRowToOperation(statementRow, account, Set.empty[Card.Number], cardRules, checkRules, debitRules, transferRules)
+      actual.value shouldEqual expected
+    }
+
   }
   
   "A statement row cannot be converted to an operation" - {
@@ -157,7 +176,8 @@ object StatementServiceTest {
     .map(_.r)
   
   val transferRules: Seq[Regex] = Seq(
-    raw"VIREMENT EMIS\p{Space}.*"
+    raw"VIREMENT EMIS\p{Space}.*",
+    raw"VIREMENT EN VOTRE FAVEUR\p{Space}.*"
   )
     .map(_.r)
 }
