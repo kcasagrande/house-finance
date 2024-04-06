@@ -32,7 +32,7 @@ class StatementServiceTest
         2024\3\14,
         2024\3\14
       )
-      val actual = StatementService.statementRowToOperation(statementRow, account, Set(cardNumber), cardRules, checkRules, debitRules)
+      val actual = StatementService.statementRowToOperation(statementRow, account, Set(cardNumber), cardRules, checkRules, debitRules, transferRules)
       actual.value shouldEqual expected
     }
 
@@ -51,7 +51,7 @@ class StatementServiceTest
         2024 \ 1 \ 1,
         2024 \ 1 \ 1
       )
-      val actual = StatementService.statementRowToOperation(statementRow, account, Set(cardNumber), cardRules, checkRules, debitRules)
+      val actual = StatementService.statementRowToOperation(statementRow, account, Set(cardNumber), cardRules, checkRules, debitRules, transferRules)
       actual.value shouldEqual expected
     }
     
@@ -69,7 +69,7 @@ class StatementServiceTest
         2024 \ 1 \ 1,
         2024 \ 1 \ 1
       )
-      val actual = StatementService.statementRowToOperation(statementRow, account, Set.empty[Card.Number], cardRules, checkRules, debitRules)
+      val actual = StatementService.statementRowToOperation(statementRow, account, Set.empty[Card.Number], cardRules, checkRules, debitRules, transferRules)
       actual.value shouldEqual expected
     }
 
@@ -87,7 +87,26 @@ class StatementServiceTest
         2024 \ 1 \ 1,
         2024 \ 1 \ 1
       )
-      val actual = StatementService.statementRowToOperation(statementRow, account, Set.empty[Card.Number], cardRules, checkRules, debitRules)
+      val actual = StatementService.statementRowToOperation(statementRow, account, Set.empty[Card.Number], cardRules, checkRules, debitRules, transferRules)
+      actual.value shouldEqual expected
+    }
+
+    "given a payment by transfer" in {
+      val statementRow = Statement.Row(2024 \ 1 \ 1, 2024 \ 1 \ 1, "VIREMENT EMIS BLABLABLA BLABLA", 550.cents, 0.cents)
+      val operationId = UUID.randomUUID()
+      implicit val operationIdGenerator: () => Operation.Id = () => operationId
+      val expected = Operation.ByTransfer(
+        operationId,
+        account,
+        None,
+        "VIREMENT EMIS BLABLABLA BLABLA",
+        (-550).cents,
+        2024 \ 1 \ 1,
+        2024 \ 1 \ 1,
+        2024 \ 1 \ 1,
+        None
+      )
+      val actual = StatementService.statementRowToOperation(statementRow, account, Set.empty[Card.Number], cardRules, checkRules, debitRules, transferRules)
       actual.value shouldEqual expected
     }
 
@@ -100,7 +119,7 @@ class StatementServiceTest
       val operationId = UUID.randomUUID()
       implicit val operationIdGenerator: () => Operation.Id = () => operationId
       val cardNumber = "7349872039871087"
-      val actual = StatementService.statementRowToOperation(statementRow, account, Set(cardNumber), cardRules, checkRules, debitRules)
+      val actual = StatementService.statementRowToOperation(statementRow, account, Set(cardNumber), cardRules, checkRules, debitRules, transferRules)
       actual.left.value shouldBe a [NoSuchElementException]
     }
 
@@ -109,7 +128,7 @@ class StatementServiceTest
       val operationId = UUID.randomUUID()
       implicit val operationIdGenerator: () => Operation.Id = () => operationId
       val cardNumber = "8971298379811234"
-      val actual = StatementService.statementRowToOperation(statementRow, account, Set(cardNumber), cardRules, checkRules, debitRules)
+      val actual = StatementService.statementRowToOperation(statementRow, account, Set(cardNumber), cardRules, checkRules, debitRules, transferRules)
       actual.left.value shouldBe a [MatchError]
     }
 
@@ -137,4 +156,8 @@ object StatementServiceTest {
   )
     .map(_.r)
   
+  val transferRules: Seq[Regex] = Seq(
+    raw"VIREMENT EMIS\p{Space}.*"
+  )
+    .map(_.r)
 }

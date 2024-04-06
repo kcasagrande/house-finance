@@ -34,6 +34,7 @@ class StatementService(
       cardRules <- EitherT.liftF(Files[IO].readUtf8(Path.fromNioPath(java.nio.file.Paths.get(rulesDirectory + "card.txt"))).through(lines).map(_.r).compile.toList)
       checkRules <- EitherT.liftF(Files[IO].readUtf8(Path.fromNioPath(java.nio.file.Paths.get(rulesDirectory + "check.txt"))).through(lines).map(_.r).compile.toList)
       debitRules <- EitherT.liftF(Files[IO].readUtf8(Path.fromNioPath(java.nio.file.Paths.get(rulesDirectory + "debit.txt"))).through(lines).map(_.r).compile.toList)
+      transferRules <- EitherT.liftF(Files[IO].readUtf8(Path.fromNioPath(java.nio.file.Paths.get(rulesDirectory + "transfer.txt"))).through(lines).map(_.r).compile.toList)
       cards <- cardRepository.getByAccount(account)
       operations <- EitherT(content
         .through(attemptDecodeUsingHeaders[Statement.Row](';'))
@@ -53,7 +54,7 @@ class StatementService(
           }
         })
       )
-        .flatMap(statementRows => EitherT.fromEither[IO](statementRows.map { statementRow => statementRowToOperation(statementRow, account, cards.map(_.number), cardRules, checkRules, debitRules) }.traverse))
+        .flatMap(statementRows => EitherT.fromEither[IO](statementRows.map { statementRow => statementRowToOperation(statementRow, account, cards.map(_.number), cardRules, checkRules, debitRules, transferRules) }.traverse))
     } yield {
       println(operations.mkString("\n"))
       operations.length
@@ -173,13 +174,34 @@ object StatementService {
     )
   }
   
+  private def buildTransferOperation(
+    account: Iban
+  )(implicit
+    operationIdGenerator: () => Operation.Id = () => UUID.randomUUID()
+  ): (Regex.Match, Statement.Row) => Either[Throwable, Operation.ByTransfer] = { (_, statementRow) =>
+    Either.right[Throwable](
+      Operation.ByTransfer(
+        operationIdGenerator(),
+        account,
+        None,
+        statementRow.libelle,
+        statementRow.credit - statementRow.debit,
+        statementRow.dateValeur,
+        statementRow.dateValeur,
+        statementRow.date,
+        None
+      )
+    )
+  }
+  
   def statementRowToOperation(
     statementRow: Statement.Row,
     account: Iban,
     cardsOfAccount: Set[Card.Number] = Set.empty[Card.Number],
     cardRules: Seq[Regex],
     checkRules: Seq[Regex],
-    debitRules: Seq[Regex]
+    debitRules: Seq[Regex],
+    transferRules: Seq[Regex]
   )(implicit
     operationIdGenerator: () => Operation.Id
   ): Either[Throwable, Operation] = {
@@ -187,7 +209,8 @@ object StatementService {
     val allRules = (
       cardRules.map(_ -> buildCardOperation(cardsOfAccount)) ++
       checkRules.map(_ -> buildCheckOperation(account)) ++
-      debitRules.map(_ -> buildDebitOperation(account))
+      debitRules.map(_ -> buildDebitOperation(account)) ++
+      transferRules.map(_ -> buildTransferOperation(account))
     ).toMap
     allRules.find(_._1.matches(statementRow.libelle))
       .flatMap {
