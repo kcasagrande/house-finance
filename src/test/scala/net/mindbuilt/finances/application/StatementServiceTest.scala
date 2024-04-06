@@ -1,7 +1,7 @@
 package net.mindbuilt.finances.application
 
 import net.mindbuilt.finances.application.StatementServiceTest._
-import net.mindbuilt.finances.business.{Iban, Operation, Statement}
+import net.mindbuilt.finances.business.{Card, Iban, Operation, Statement}
 import net.mindbuilt.finances.{IntToCents, TestHelpers}
 import org.scalatest.EitherValues
 import org.scalatest.freespec.AsyncFreeSpecLike
@@ -32,7 +32,7 @@ class StatementServiceTest
         2024\3\14,
         2024\3\14
       )
-      val actual = StatementService.statementRowToOperation(statementRow, account, Set(cardNumber), cardRules, debitRules)
+      val actual = StatementService.statementRowToOperation(statementRow, account, Set(cardNumber), cardRules, checkRules, debitRules)
       actual.value shouldEqual expected
     }
 
@@ -51,7 +51,43 @@ class StatementServiceTest
         2024 \ 1 \ 1,
         2024 \ 1 \ 1
       )
-      val actual = StatementService.statementRowToOperation(statementRow, account, Set(cardNumber), cardRules, debitRules)
+      val actual = StatementService.statementRowToOperation(statementRow, account, Set(cardNumber), cardRules, checkRules, debitRules)
+      actual.value shouldEqual expected
+    }
+    
+    "given a check" in {
+      val statementRow = Statement.Row(2024 \ 1 \ 1, 2024 \ 1 \ 1, "CHEQUE EMIS 1234567", 550.cents, 0.cents)
+      val operationId = UUID.randomUUID()
+      implicit val operationIdGenerator: () => Operation.Id = () => operationId
+      val expected = Operation.ByCheck(
+        operationId,
+        account,
+        "1234567",
+        "CHEQUE EMIS 1234567",
+        (-550).cents,
+        2024 \ 1 \ 1,
+        2024 \ 1 \ 1,
+        2024 \ 1 \ 1
+      )
+      val actual = StatementService.statementRowToOperation(statementRow, account, Set.empty[Card.Number], cardRules, checkRules, debitRules)
+      actual.value shouldEqual expected
+    }
+
+    "given a payment by debit" in {
+      val statementRow = Statement.Row(2024 \ 1 \ 1, 2024 \ 1 \ 1, "PRELEVEMENT ALEATOIRE", 550.cents, 0.cents)
+      val operationId = UUID.randomUUID()
+      implicit val operationIdGenerator: () => Operation.Id = () => operationId
+      val expected = Operation.ByDebit(
+        operationId,
+        account,
+        None,
+        "PRELEVEMENT ALEATOIRE",
+        (-550).cents,
+        2024 \ 1 \ 1,
+        2024 \ 1 \ 1,
+        2024 \ 1 \ 1
+      )
+      val actual = StatementService.statementRowToOperation(statementRow, account, Set.empty[Card.Number], cardRules, checkRules, debitRules)
       actual.value shouldEqual expected
     }
 
@@ -64,7 +100,7 @@ class StatementServiceTest
       val operationId = UUID.randomUUID()
       implicit val operationIdGenerator: () => Operation.Id = () => operationId
       val cardNumber = "7349872039871087"
-      val actual = StatementService.statementRowToOperation(statementRow, account, Set(cardNumber), cardRules, debitRules)
+      val actual = StatementService.statementRowToOperation(statementRow, account, Set(cardNumber), cardRules, checkRules, debitRules)
       actual.left.value shouldBe a [NoSuchElementException]
     }
 
@@ -73,7 +109,7 @@ class StatementServiceTest
       val operationId = UUID.randomUUID()
       implicit val operationIdGenerator: () => Operation.Id = () => operationId
       val cardNumber = "8971298379811234"
-      val actual = StatementService.statementRowToOperation(statementRow, account, Set(cardNumber), cardRules, debitRules)
+      val actual = StatementService.statementRowToOperation(statementRow, account, Set(cardNumber), cardRules, checkRules, debitRules)
       actual.left.value shouldBe a [MatchError]
     }
 
@@ -81,10 +117,16 @@ class StatementServiceTest
 }
 
 object StatementServiceTest {
-  val account = Iban("FR", "76", "1234567891011").get
+  val account: Iban = Iban("FR", "76", "1234567891011").get
+  
   val cardRules: Seq[Regex] = Seq(
     raw"PAIEMENT PAR CARTE X(?<cardSuffix>\p{Digit}{4}) .* (?<incompleteDate>\p{Digit}{2}/\p{Digit}{2})\p{Space}*",
     raw"RETRAIT AU DISTRIBUTEUR X(?<cardSuffix>\p{Digit}{4}) .* (?<incompleteDate>\p{Digit}{2}/\p{Digit}{2}) \p{Digit}{2}H\p{Digit}{2}\p{Space}*"
+  )
+    .map(_.r)
+
+  val checkRules: Seq[Regex] = Seq(
+    raw"CHEQUE EMIS\p{Space}(?<checkNumber>\p{Digit}{7})"
   )
     .map(_.r)
   
@@ -94,4 +136,5 @@ object StatementServiceTest {
     raw"REGLEMENT ASSU\. CAAE PRET HABITAT\p{Space}.*"
   )
     .map(_.r)
+  
 }
