@@ -28,7 +28,7 @@ class StatementService(
 )(implicit
   operationIdGenerator: () => Operation.Id = () => UUID.randomUUID()
 ) {
-  def `import`(account: Iban, content: Stream[IO, String]): EitherT[IO, Throwable, Int] = {
+  def `import`(account: Iban, content: Stream[IO, String]): EitherT[IO, Throwable, Seq[Operation]] = {
     val rulesDirectory = "src/main/resources/rules.d/"
     for {
       cardRules <- EitherT.liftF(Files[IO].readUtf8(Path.fromNioPath(java.nio.file.Paths.get(rulesDirectory + "card.txt"))).through(lines).map(_.r).compile.toList)
@@ -56,8 +56,7 @@ class StatementService(
       )
         .flatMap(statementRows => EitherT.fromEither[IO](statementRows.map { statementRow => statementRowToOperation(statementRow, account, cards.map(_.number), cardRules, checkRules, debitRules, transferRules) }.traverse))
     } yield {
-      println(operations.mkString("\n"))
-      operations.length
+      operations
     }
   }
 }

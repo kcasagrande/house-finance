@@ -8,7 +8,9 @@ import net.mindbuilt.finances.application.StatementService
 import net.mindbuilt.finances.business
 import org.http4s.dsl.io._
 import org.http4s.multipart.Multipart
+import org.http4s.circe.CirceEntityEncoder._
 import org.http4s.{HttpRoutes, ParseFailure, QueryParamDecoder}
+import OperationController.operationEncoder
 
 import java.nio.charset.Charset
 
@@ -28,7 +30,7 @@ class StatementController(
                   case _: MatchError => BadRequest(throwable.getMessage)
                   case _ => InternalServerError(throwable.getMessage)
                 }
-                case Right(importedStatements) => Ok("Imported %d statements in account %s.".format(importedStatements, account))
+                case Right(parsedOperations) => Ok(parsedOperations)
               }
         }
       }
