@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import './index.css';
 import App from './App';
+import Import from './tab/Import';
 import Operations from './tab/Operations';
 import reportWebVitals from './reportWebVitals';
 
@@ -11,6 +12,10 @@ const router = createBrowserRouter([
     path: "/",
     element: <App />,
     children: [
+      {
+        path: "import",
+        element: <Import />
+      },
       {
         path: "details",
         element: <Operations />

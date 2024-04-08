@@ -49,7 +49,7 @@ function App() {
               </ListItemButton>
             </ListItem>
             <ListItem disablePadding>
-              <ListItemButton component={Link}>
+              <ListItemButton component={Link} to={`/import`}>
                 <ListItemIcon>
                   <UploadIcon />
                 </ListItemIcon>

@@ -11,3 +11,7 @@
 .euros:after {
   content: ' €';
 }
+
+.ellipsis {
+  text-overflow: ellipsis;
+}
