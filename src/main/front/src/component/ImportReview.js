@@ -10,6 +10,10 @@ function ImportReview({status, operations}) {
       label: 'Type'
     },
     {
+      id: 'card',
+      label: 'Card'
+    },
+    {
       id: 'label',
       label: 'Label'
     },
