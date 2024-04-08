@@ -16,8 +16,18 @@ function PaginatedTable({rowsPerPageOptions, columns, rows}) {
 
   return (
     <TableContainer component={Paper}>
-      <Table stickHeader>
+      <Table>
         <TableHead>
+          <TableRow>
+            <TablePagination
+              rowsPerPageOptions={(rowsPerPageOptions || []).concat([{label: 'All', value: -1}])}
+              count={rows.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handlePageChange}
+              onRowsPerPageChange={handleRowsPerPageChange}
+            />
+          </TableRow>
           <TableRow>
             {columns.map((column) =>
               <TableCell
@@ -53,18 +63,6 @@ function PaginatedTable({rowsPerPageOptions, columns, rows}) {
             })
           }
         </TableBody>
-        <TableFooter>
-          <TableRow>
-            <TablePagination
-              rowsPerPageOptions={(rowsPerPageOptions || []).concat([{label: 'All', value: -1}])}
-              count={rows.length}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              onPageChange={handlePageChange}
-              onRowsPerPageChange={handleRowsPerPageChange}
-            />
-          </TableRow>
-        </TableFooter>
       </Table>
     </TableContainer>
   );
