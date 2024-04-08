@@ -1,2 +1,0 @@
-PAIEMENT PAR CARTE X(?<cardSuffix>\p{Digit}{4}) .* (?<incompleteDate>\p{Digit}{2}/\p{Digit}{2})\p{Space}*
-RETRAIT AU DISTRIBUTEUR X(?<cardSuffix>\p{Digit}{4}) .* (?<incompleteDate>\p{Digit}{2}/\p{Digit}{2}) \p{Digit}{2}H\p{Digit}{2}\p{Space}*
