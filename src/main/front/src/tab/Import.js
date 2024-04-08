@@ -1,15 +1,35 @@
 import configuration from '../Configuration';
-import React from 'react';
-import { Box, Button, CircularProgress, Container, Input, Stack, Step, StepButton, StepLabel, Stepper, TextField } from '@mui/material';
+import { useEffect, useState, useRef } from 'react';
+import { Box, Button, CircularProgress, Container, FormControl, Input, InputLabel, MenuItem, Select, Stack, Step, StepButton, StepLabel, Stepper, TextField } from '@mui/material';
 import { FileUpload } from '@mui/icons-material';
 import ImportReview from '../component/ImportReview';
 
 function Import() {
-  const [status, setStatus] = React.useState('pending');
-  const [account, setAccount] = React.useState('');
-  const [selectedFile, setSelectedFile] = React.useState('');
-  const [operations, setOperations] = React.useState({});
-  const fileInput = React.useRef();
+  const [status, setStatus] = useState('initializing');
+  const [availableAccounts, setAvailableAccounts] = useState([]);
+  const [account, setAccount] = useState('');
+  const [selectedFile, setSelectedFile] = useState('');
+  const [operations, setOperations] = useState({});
+  const fileInput = useRef();
+
+  useEffect(() => {
+    if(status === 'initializing') {
+      fetchAccounts()
+        .finally(() => setStatus('pending'));
+    }
+  }, []);
+
+  function fetchAccounts() {
+    return fetch(configuration.api + "/accounts")
+      .then(response => {
+        if(response.ok) {
+          return response.json()
+        } else {
+          throw new Error('Response status is ' + response.status);
+        }
+      })
+      .then(setAvailableAccounts);
+  }
 
   function changeSelectedFile(file) {
     setSelectedFile(file);
@@ -43,7 +63,14 @@ function Import() {
     <Container fixed>
       <Stack direction="column" spacing={2} useFlexGap={true}>
         <Stack direction="row" alignItems="flex-end" justifyContent="center" spacing={2} useFlexGap={true}>
-          <TextField variant="standard" label="Account IBAN" onBlur={event => changeAccount(event.target.value)}></TextField>
+          <FormControl sx={{ width: 325 }}>
+            <InputLabel id="account-iban-select-label">Account IBAN</InputLabel>
+            <Select id="account-iban-select" labelId="account-iban-select-label" label="Account IBAN" onChange={event => changeAccount(event.target.value.iban)}>
+              {availableAccounts.map((account) =>
+                <MenuItem value={account}>{account.iban} - {account.holder}</MenuItem>
+              )}
+            </Select>
+          </FormControl>
           <input ref={fileInput} type="file" accept="text/csv,.csv" onChange={event => changeSelectedFile(event.target.files[0])} style={{display: 'none'}} />
           <Button variant="outlined" onClick={() => fileInput.current.click()}>Select file</Button>
           <TextField variant="standard" InputProps={{readOnly: true}} value={selectedFile.name}></TextField>
