@@ -24,15 +24,4 @@ object Statement {
     cardSuffix: Option[String] = None,
     checkNumber: Option[String] = None
   )
-
-  object ParsedRow {
-    sealed trait Type
-
-    object Type {
-      case object Card extends Type
-      case object Check extends Type
-      case object Debit extends Type
-      case object Transfer extends Type
-    }
-  }
 }

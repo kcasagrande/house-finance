@@ -9,7 +9,7 @@ function Import() {
   const [availableAccounts, setAvailableAccounts] = useState([]);
   const [account, setAccount] = useState('');
   const [selectedFile, setSelectedFile] = useState('');
-  const [operations, setOperations] = useState({});
+  const [parsedRows, setParsedRows] = useState([]);
   const fileInput = useRef();
 
   useEffect(() => {
@@ -43,18 +43,18 @@ function Import() {
 
   function process(iban, file) {
     if(!!iban && !!file) {
-      setStatus('loading');
+      setStatus('parsing');
       const formData = new FormData();
       formData.append('statement', file);
       return fetch(
-        configuration.api + "/statements?account=" + account,
+        configuration.api + "/statements",
         {
           'method': 'POST',
           'body': formData
         }
       )
       .then(response => response.json())
-      .then(json => setOperations(json))
+      .then(json => setParsedRows(json))
       .then(() => setStatus('reviewing'));
     }
   }
@@ -79,7 +79,7 @@ function Import() {
           <Button variant="outlined" disabled={status !== 'reviewing'}>Submit</Button>
           <Button variant="outlined" disabled={status !== 'reviewing'}>Reset</Button>
         </Stack>
-        {status === 'loading'
+        {status === 'parsing'
         ? <Container>
             <Stack direction="column" alignItems="center">
               <CircularProgress />
@@ -88,7 +88,7 @@ function Import() {
         : <></>
         }
         {status === 'reviewing'
-        ? <ImportReview operations={operations} />
+        ? <ImportReview rows={parsedRows} />
         : <></>
         }
       </Stack>

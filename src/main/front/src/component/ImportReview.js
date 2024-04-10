@@ -1,17 +1,18 @@
+import './ImportReview.css';
 import React from 'react';
 import { CircularProgress, Container, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TablePagination, TableRow, Tooltip, Typography } from '@mui/material';
 import PaginatedTable from '../widget/PaginatedTable';
 import OperationType from './OperationType';
 
-function ImportReview({status, operations}) {
+function ImportReview({status, rows}) {
   const columns = [
     {
-      id: 'type',
+      id: 'typeIcon',
       label: 'Type'
     },
     {
-      id: 'card',
-      label: 'Card'
+      id: 'reference',
+      label: 'Reference'
     },
     {
       id: 'label',
@@ -30,29 +31,81 @@ function ImportReview({status, operations}) {
       label: 'Account date'
     },
     {
-      id: 'amount',
-      label: 'Amount'
+      id: 'credit',
+      label: 'Credit'
+    },
+    {
+      id: 'cardSuffix',
+      label: 'Card suffix'
+    },
+    {
+      id: 'checkNumber',
+      label: 'Check number'
     }
   ];
 
-  function amount(operation) {
+  function credit(row) {
     return new Intl.NumberFormat(
       'fr-FR',
       { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }
     )
-      .format(operation.breakdown[0].credit / 100);
+      .format(row.credit / 100);
+  }
+
+  function validate(row) {
+    return isValidCardOperation(row)
+      || isValidCheckOperation(row)
+      || isValidDebitOperation(row)
+      || isValidTransferOperation(row);
+  }
+  
+  function isValidCardOperation(row) {
+    return (row.type === 'card') &&
+      (row.cardSuffix) &&
+      (row.operationDate);
+  }
+  
+  function isValidCheckOperation(row) {
+    return (row.type === 'check') &&
+      (row.checkNumber) &&
+      (row.operationDate);
+  }
+  
+  function isValidDebitOperation(row) {
+    return (row.type === 'debit');
+  }
+
+  function isValidTransferOperation(row) {
+    return (row.type === 'transfer');
   }
 
   return (
     <PaginatedTable
       rowsPerPageOptions={[10, 50, 100]}
       columns={columns}
-      rows={operations
-        .map((operation) => { return {
-          ...operation,
-          amount: amount(operation),
-          type: <OperationType type={operation.type} />
+      rows={rows
+        .map((row) => { return {
+          ...row,
+          credit: credit(row),
+          typeIcon: <OperationType type={row.type} />
         };})
+        .map((row) => {
+          return (
+            <TableRow key={row.id} className={validate(row) ? 'valid' : 'invalid'}>
+              {columns.map((column) => {
+                const value = row[column.id];
+                return (
+                  <TableCell key={column.id} align={column.align || 'left'}>
+                    {column.format && typeof value === 'number'
+                      ? column.format(value)
+                      :value
+                    }
+                  </TableCell>
+                );
+              })}
+            </TableRow>
+          );
+        })
       }
     />
   );

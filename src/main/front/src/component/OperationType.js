@@ -1,5 +1,6 @@
 import { Tooltip } from '@mui/material';
 import BorderColorIcon from '@mui/icons-material/BorderColor';
+import BrokenImageIcon from '@mui/icons-material/BrokenImage';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import OutputIcon from '@mui/icons-material/Output';
 import SyncAltIcon from '@mui/icons-material/SyncAlt';
@@ -27,8 +28,8 @@ function OperationType(props) {
   };
 
   return (
-    <Tooltip title={types[type]['label']}>
-      {types[type]['icon']}
+    <Tooltip title={types[type] && types[type]['label'] || 'Type indéterminé'}>
+      {types[type] && types[type]['icon'] || <BrokenImageIcon />}
     </Tooltip>
   );
 }

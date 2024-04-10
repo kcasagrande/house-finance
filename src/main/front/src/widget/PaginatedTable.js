@@ -42,26 +42,9 @@ function PaginatedTable({rowsPerPageOptions, columns, rows}) {
         </TableHead>
         <TableBody>
           {(rowsPerPage > 0
-              ? rows.slice(page * rowsPerPage, (1 + page) * rowsPerPage)
-              : rows
-            ).map((row) => {
-              return (
-                <TableRow key={row.id}>
-                  {columns.map((column) => {
-                    const value = row[column.id];
-                    return (
-                      <TableCell key={column.id} align={column.align || 'left'}>
-                        {column.format && typeof value === 'number'
-                          ? column.format(value)
-                          :value
-                        }
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              );
-            })
-          }
+            ? rows.slice(page * rowsPerPage, (1 + page) * rowsPerPage)
+            : rows
+          )}
         </TableBody>
       </Table>
     </TableContainer>
