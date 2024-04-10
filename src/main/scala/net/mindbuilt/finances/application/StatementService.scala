@@ -9,7 +9,7 @@ import fs2.io.file.{Files, Path}
 import fs2.text.lines
 import net.mindbuilt.finances.Helpers._
 import net.mindbuilt.finances.application.StatementService._
-import net.mindbuilt.finances.business.{AccountRepository, Card, CardRepository, Iban, Operation, OperationRepository, Statement}
+import net.mindbuilt.finances.business.{Card, CardRepository, Iban, Operation, Statement}
 import net.mindbuilt.finances.{Cents, IntToCents}
 
 import java.text.NumberFormat
@@ -22,55 +22,93 @@ import scala.util.matching.Regex
 import scala.util.{Failure, Success, Try}
 
 class StatementService(
-  accountRepository: AccountRepository,
-  operationRepository: OperationRepository,
   cardRepository: CardRepository
 )(implicit
   operationIdGenerator: () => Operation.Id = () => UUID.randomUUID()
 ) {
+  private[this] val rulesDirectory = "src/main/resources/rules.d/"
+  private[this] def loadRulesFromFile(fileName: String): EitherT[IO, Throwable, List[Regex]] =
+    EitherT.liftF(Files[IO].readUtf8(Path.fromNioPath(java.nio.file.Paths.get(rulesDirectory + fileName))).through(lines).map(_.r).compile.toList)
+  
   def `import`(account: Iban, content: Stream[IO, String]): EitherT[IO, Throwable, Seq[Operation]] = {
-    val rulesDirectory = "src/main/resources/rules.d/"
     for {
-      cardRules <- EitherT.liftF(Files[IO].readUtf8(Path.fromNioPath(java.nio.file.Paths.get(rulesDirectory + "card.txt"))).through(lines).map(_.r).compile.toList)
-      checkRules <- EitherT.liftF(Files[IO].readUtf8(Path.fromNioPath(java.nio.file.Paths.get(rulesDirectory + "check.txt"))).through(lines).map(_.r).compile.toList)
-      debitRules <- EitherT.liftF(Files[IO].readUtf8(Path.fromNioPath(java.nio.file.Paths.get(rulesDirectory + "debit.txt"))).through(lines).map(_.r).compile.toList)
-      transferRules <- EitherT.liftF(Files[IO].readUtf8(Path.fromNioPath(java.nio.file.Paths.get(rulesDirectory + "transfer.txt"))).through(lines).map(_.r).compile.toList)
+      cardRules <- loadRulesFromFile("card.txt")
+      checkRules <- loadRulesFromFile("check.txt")
+      debitRules <- loadRulesFromFile("debit.txt")
+      transferRules <- loadRulesFromFile("transfer.txt")
       cards <- cardRepository.getByAccount(account)
       operations <- EitherT(content
         .through(attemptDecodeUsingHeaders[Statement.Row](';'))
         .compile.toList
-        .map(_.foldLeft(Either.right[MultipleCsvExceptions](List.empty[Statement.Row])) { (result, element) =>
-          result match {
-            case left@Left(exceptions) =>
-              element match {
-                case Left(exception) => Left(exceptions :+ exception)
-                case Right(_) => left
-              }
-            case Right(rows) =>
-              element match {
-                case Left(exception) => Left(exception)
-                case Right(row) => Either.right[MultipleCsvExceptions](rows :+ row)
-              }
-          }
-        })
+        .map(_.toSeq)
+        .map(eitherThrowablesToEitherCompositeThrowable)
       )
         .flatMap(statementRows => EitherT.fromEither[IO](statementRows.map { statementRow => statementRowToOperation(statementRow, account, cards.map(_.number), cardRules, checkRules, debitRules, transferRules) }.traverse))
     } yield {
       operations
     }
   }
+  
+  private[this] def parseRow(
+    row: Statement.Row,
+    rules: Seq[Regex]
+  ): Statement.ParsedRow = {
+    val matches = rules.find(_.matches(row.libelle))
+      .flatMap(_.findFirstMatchIn(row.libelle))
+      .getOrElse("".r.findFirstMatchIn("").get)
+    Statement.ParsedRow(
+      label = row.libelle,
+      credit = row.credit - row.debit,
+      accountDate = row.date,
+      valueDate = row.dateValeur,
+      `type` = matches.groupOption("card").map(_ => classOf[Operation.ByCard])
+        .orElse(matches.groupOption("check").map(_ => classOf[Operation.ByCheck]))
+        .orElse(matches.groupOption("debit").map(_ => classOf[Operation.ByDebit]))
+        .orElse(matches.groupOption("transfer").map(_ => classOf[Operation.ByTransfer])),
+      reference = matches.groupOption("reference"),
+      operationDate = matches.groupOption("incompleteDate").flatMap(computeOperationDate(_, row.date).toOption),
+      cardSuffix = matches.groupOption("cardSuffix"),
+      checkNumber = matches.groupOption("checkNumber")
+    )
+  }
+
+  def parse(content: Stream[IO, String]): EitherT[IO, Throwable, Seq[Statement.ParsedRow]] =
+    for {
+      rules <- loadRulesFromFile("rules.txt")
+      rows <- EitherT[IO, Throwable, Seq[Statement.Row]](
+        content.through(attemptDecodeUsingHeaders[Statement.Row](';')).compile.toList
+          .map(_.toSeq)
+          .map(eitherThrowablesToEitherCompositeThrowable)
+      )
+      parsedRows = rows.map(parseRow(_, rules))
+    } yield {
+      parsedRows
+    }
 }
 
 object StatementService {
 
-  case class MultipleCsvExceptions(csvExceptions: Seq[CsvException])
+  case class CompositeThrowable(underlyingThrowables: Seq[Throwable])
     extends Throwable {
-    override def getMessage: String = csvExceptions.map(_.getMessage).mkString("\n")
-
-    def :+(csvException: CsvException): MultipleCsvExceptions = this.copy(csvExceptions = this.csvExceptions :+ csvException)
+    override def getMessage: String = underlyingThrowables.map(_.getMessage).mkString("\n")
+    def :+(throwable: Throwable): CompositeThrowable = this.copy(underlyingThrowables = this.underlyingThrowables :+ throwable)
   }
-
-  implicit def csvExceptionToMultipleCsvExceptions(csvException: CsvException): MultipleCsvExceptions = MultipleCsvExceptions(Seq(csvException))
+  implicit def throwableToCompositeThrowable(throwable: Throwable): CompositeThrowable = CompositeThrowable(Seq(throwable))
+  implicit def eitherThrowablesToEitherCompositeThrowable[T](eitherThrowables: Seq[Either[Throwable, T]]): Either[CompositeThrowable, Seq[T]] =
+    eitherThrowables.foldLeft(Either.right[CompositeThrowable](Seq.empty[T])) { (result, element) =>
+      result match {
+        case left@Left(throwables) =>
+          element match {
+            case Left(throwable) => Left(throwables :+ throwable)
+            case Right(_) => left
+          }
+        case Right(values) =>
+          element match {
+            case Left(throwable) => Left(throwable)
+            case Right(value) => Either.right[CompositeThrowable](values :+ value)
+          }
+      }
+    }
 
   implicit def tryToDecoderResult[T](tryT: Try[T]): DecoderResult[T] =
     tryT match {
@@ -234,5 +272,5 @@ object StatementService {
       .map(_.sortBy(date => Math.abs(date.until(accountDate, DAYS))))
       .map(_.head)
   }
-
+  
 }

@@ -12,4 +12,27 @@ object Statement {
     debit: Cents,
     credit: Cents
   )
+
+  case class ParsedRow(
+    label: String,
+    credit: Cents,
+    accountDate: LocalDate,
+    valueDate: LocalDate,
+    `type`: Option[Class[_ <: Operation]] = None,
+    reference: Option[String] = None,
+    operationDate: Option[LocalDate] = None,
+    cardSuffix: Option[String] = None,
+    checkNumber: Option[String] = None
+  )
+
+  object ParsedRow {
+    sealed trait Type
+
+    object Type {
+      case object Card extends Type
+      case object Check extends Type
+      case object Debit extends Type
+      case object Transfer extends Type
+    }
+  }
 }
