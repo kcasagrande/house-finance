@@ -1,6 +1,6 @@
 import './ImportReview.css';
 import { useState } from 'react';
-import { CircularProgress, Container, MenuItem, Paper, Select, Stack, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TablePagination, TableRow, Tooltip, Typography } from '@mui/material';
+import { CircularProgress, Container, MenuItem, Paper, Select, Stack, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TablePagination, TableRow, TextField, Tooltip, Typography } from '@mui/material';
 import PaginatedTable from '../widget/PaginatedTable';
 import OperationType from './OperationType';
 
@@ -9,6 +9,10 @@ function ImportReview({status, rows}) {
   
   function handleTypeChange(operation, index, newType) {
     setOperations(operations.toSpliced(index, 1, {...operation, type: newType}));
+  }
+  
+  function handleCardSuffixChange(operation, index, newCardSuffix) {
+    setOperations(operations.toSpliced(index, 1, {...operation, cardSuffix: newCardSuffix}));
   }
   
   const columns = [
@@ -62,7 +66,17 @@ function ImportReview({status, rows}) {
     },
     {
       id: 'cardSuffix',
-      label: 'Card suffix'
+      label: 'Card suffix',
+      value: (operation, index) => {
+        return (
+          <TextField
+            variant="standard"
+            defaultValue={operation.cardSuffix}
+            onChange={(event) => handleCardSuffixChange(operation, index, event.target.value)}
+            disabled={operation.type !== 'card'}
+          />
+        );
+      }
     },
     {
       id: 'checkNumber',
