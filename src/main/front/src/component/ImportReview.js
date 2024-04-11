@@ -1,14 +1,26 @@
 import './ImportReview.css';
-import React from 'react';
-import { CircularProgress, Container, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TablePagination, TableRow, Tooltip, Typography } from '@mui/material';
+import { useState } from 'react';
+import { CircularProgress, Container, MenuItem, Paper, Select, Stack, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TablePagination, TableRow, Tooltip, Typography } from '@mui/material';
 import PaginatedTable from '../widget/PaginatedTable';
 import OperationType from './OperationType';
 
 function ImportReview({status, rows}) {
+  const [operations, setOperations] = useState(rows);
   const columns = [
     {
-      id: 'typeIcon',
-      label: 'Type'
+      id: 'type',
+      label: 'Type',
+      value: (operation) => {
+        return (
+          <Select
+            value={operation.type}>
+            <MenuItem value="card"><OperationType type="card" /></MenuItem>
+            <MenuItem value="check"><OperationType type="check" /></MenuItem>
+            <MenuItem value="debit"><OperationType type="debit" /></MenuItem>
+            <MenuItem value="transfer"><OperationType type="transfer" /></MenuItem>
+          </Select>
+        );
+      }
     },
     {
       id: 'reference',
@@ -32,7 +44,14 @@ function ImportReview({status, rows}) {
     },
     {
       id: 'credit',
-      label: 'Credit'
+      label: 'Credit',
+      value: (operation) => {
+        return new Intl.NumberFormat(
+          'fr-FR',
+          { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }
+        )
+         .format(operation.credit / 100);
+      }
     },
     {
       id: 'cardSuffix',
@@ -43,14 +62,6 @@ function ImportReview({status, rows}) {
       label: 'Check number'
     }
   ];
-
-  function credit(row) {
-    return new Intl.NumberFormat(
-      'fr-FR',
-      { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }
-    )
-      .format(row.credit / 100);
-  }
 
   function validate(row) {
     return isValidCardOperation(row)
@@ -83,22 +94,16 @@ function ImportReview({status, rows}) {
     <PaginatedTable
       rowsPerPageOptions={[10, 50, 100]}
       columns={columns}
-      rows={rows
-        .map((row) => { return {
-          ...row,
-          credit: credit(row),
-          typeIcon: <OperationType type={row.type} />
-        };})
-        .map((row) => {
+      rows={operations
+        .map((operation) => {
           return (
-            <TableRow key={row.id} className={validate(row) ? 'valid' : 'invalid'}>
+            <TableRow key={operation.id} className={validate(operation) ? 'valid' : 'invalid'}>
               {columns.map((column) => {
-                const value = row[column.id];
                 return (
                   <TableCell key={column.id} align={column.align || 'left'}>
-                    {column.format && typeof value === 'number'
-                      ? column.format(value)
-                      :value
+                    {column.value
+                      ? column.value(operation)
+                      :operation[column.id]
                     }
                   </TableCell>
                 );
