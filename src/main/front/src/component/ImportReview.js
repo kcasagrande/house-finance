@@ -6,14 +6,21 @@ import OperationType from './OperationType';
 
 function ImportReview({status, rows}) {
   const [operations, setOperations] = useState(rows);
+  
+  function handleTypeChange(operation, index, newType) {
+    setOperations(operations.toSpliced(index, 1, {...operation, type: newType}));
+  }
+  
   const columns = [
     {
       id: 'type',
       label: 'Type',
-      value: (operation) => {
+      value: (operation, index) => {
         return (
           <Select
-            value={operation.type}>
+            defaultValue={operation.type}
+            onChange={(event) => handleTypeChange(operation, index, event.target.value)}
+            >
             <MenuItem value="card"><OperationType type="card" /></MenuItem>
             <MenuItem value="check"><OperationType type="check" /></MenuItem>
             <MenuItem value="debit"><OperationType type="debit" /></MenuItem>
@@ -45,7 +52,7 @@ function ImportReview({status, rows}) {
     {
       id: 'credit',
       label: 'Credit',
-      value: (operation) => {
+      value: (operation, index) => {
         return new Intl.NumberFormat(
           'fr-FR',
           { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }
@@ -95,14 +102,14 @@ function ImportReview({status, rows}) {
       rowsPerPageOptions={[10, 50, 100]}
       columns={columns}
       rows={operations
-        .map((operation) => {
+        .map((operation, index) => {
           return (
-            <TableRow key={operation.id} className={validate(operation) ? 'valid' : 'invalid'}>
+            <TableRow key={'operation-' + index} className={validate(operation) ? 'valid' : 'invalid'}>
               {columns.map((column) => {
                 return (
                   <TableCell key={column.id} align={column.align || 'left'}>
                     {column.value
-                      ? column.value(operation)
+                      ? column.value(operation, index)
                       :operation[column.id]
                     }
                   </TableCell>
