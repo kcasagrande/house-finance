@@ -1,6 +1,6 @@
 import './ImportReview.css';
 import { useState } from 'react';
-import { CircularProgress, Container, MenuItem, Paper, Select, Stack, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TablePagination, TableRow, TextField, Tooltip, Typography } from '@mui/material';
+import { CircularProgress, Container, LinearProgress, MenuItem, Paper, Select, Stack, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TablePagination, TableRow, TextField, Tooltip, Typography } from '@mui/material';
 import PaginatedTable from '../widget/PaginatedTable';
 import OperationType from './OperationType';
 
@@ -110,30 +110,33 @@ function ImportReview({status, rows}) {
   function isValidTransferOperation(row) {
     return (row.type === 'transfer');
   }
-
+  
   return (
-    <PaginatedTable
-      rowsPerPageOptions={[10, 50, 100]}
-      columns={columns}
-      rows={operations
-        .map((operation, index) => {
-          return (
-            <TableRow key={'operation-' + index} className={validate(operation) ? 'valid' : 'invalid'}>
-              {columns.map((column) => {
-                return (
-                  <TableCell key={column.id} align={column.align || 'left'}>
-                    {column.value
-                      ? column.value(operation, index)
-                      :operation[column.id]
-                    }
-                  </TableCell>
-                );
-              })}
-            </TableRow>
-          );
-        })
-      }
-    />
+    <>
+      <LinearProgress variant="determinate" value={operations.filter(validate).length * 100 / operations.length} />
+      <PaginatedTable
+        rowsPerPageOptions={[10, 50, 100]}
+        columns={columns}
+        rows={operations
+          .map((operation, index) => {
+            return (
+              <TableRow key={'operation-' + index} className={validate(operation) ? 'valid' : 'invalid'}>
+                {columns.map((column) => {
+                  return (
+                    <TableCell key={column.id} align={column.align || 'left'}>
+                      {column.value
+                        ? column.value(operation, index)
+                        :operation[column.id]
+                      }
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            );
+          })
+        }
+      />
+    </>
   );
 }
 
