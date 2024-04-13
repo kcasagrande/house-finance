@@ -1,5 +1,5 @@
 import React from 'react';
-import { Paper, Skeleton, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TablePagination, TableRow } from '@mui/material';
+import { Paper, Skeleton, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow } from '@mui/material';
 
 function PaginatedTable({rowsPerPageOptions, columns, ready = true, children}) {
   const [page, setPage] = React.useState(0);

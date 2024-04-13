@@ -1,6 +1,5 @@
 import './ImportReview.css';
-import { useState } from 'react';
-import { CircularProgress, Container, LinearProgress, MenuItem, Paper, Select, Stack, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TablePagination, TableRow, TextField, Tooltip, Typography } from '@mui/material';
+import { MenuItem, Select, TableCell, TableRow, TextField } from '@mui/material';
 import PaginatedTable from '../widget/PaginatedTable';
 import OperationType from './OperationType';
 

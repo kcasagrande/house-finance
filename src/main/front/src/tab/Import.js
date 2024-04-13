@@ -1,9 +1,8 @@
 import configuration from '../Configuration';
-import { useEffect, useState, useRef } from 'react';
-import { Box, Button, CircularProgress, Container, FormControl, Input, InputLabel, LinearProgress, MenuItem, Select, Stack, Step, StepButton, StepLabel, Stepper, TextField, Typography } from '@mui/material';
+import { useState } from 'react';
+import { Button, Container, LinearProgress, Stack, Typography } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
-import PendingIcon from '@mui/icons-material/Pending';
 import AccountChooser from '../component/AccountChooser';
 import FileChooser from '../component/FileChooser';
 import ImportReview from '../component/ImportReview';

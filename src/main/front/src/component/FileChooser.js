@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { Button, TextField } from '@mui/material';
 
 function FileChooser({onChange}) {
