@@ -1,7 +1,7 @@
 import React from 'react';
-import { Paper, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TablePagination, TableRow } from '@mui/material';
+import { Paper, Skeleton, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TablePagination, TableRow } from '@mui/material';
 
-function PaginatedTable({rowsPerPageOptions, columns, rows}) {
+function PaginatedTable({rowsPerPageOptions, columns, ready = true, children}) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(rowsPerPageOptions ? rowsPerPageOptions[0] : -1);
   
@@ -21,7 +21,7 @@ function PaginatedTable({rowsPerPageOptions, columns, rows}) {
           <TableRow>
             <TablePagination
               rowsPerPageOptions={(rowsPerPageOptions || []).concat([{label: 'All', value: -1}])}
-              count={rows.length}
+              count={children.length}
               rowsPerPage={rowsPerPage}
               page={page}
               onPageChange={handlePageChange}
@@ -41,9 +41,14 @@ function PaginatedTable({rowsPerPageOptions, columns, rows}) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {(rowsPerPage > 0
-            ? rows.slice(page * rowsPerPage, (1 + page) * rowsPerPage)
-            : rows
+          {(ready
+            ? (rowsPerPage > 0
+              ? children.slice(page * rowsPerPage, (1 + page) * rowsPerPage)
+              : children
+              )
+            : <TableRow key={null}>
+                {columns.map((column) => <TableCell><Skeleton /></TableCell>)}
+              </TableRow>
           )}
         </TableBody>
       </Table>

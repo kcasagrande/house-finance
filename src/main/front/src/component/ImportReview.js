@@ -4,15 +4,14 @@ import { CircularProgress, Container, LinearProgress, MenuItem, Paper, Select, S
 import PaginatedTable from '../widget/PaginatedTable';
 import OperationType from './OperationType';
 
-function ImportReview({status, rows}) {
-  const [operations, setOperations] = useState(rows);
+function ImportReview({status, operations, onChange}) {
   
   function handleTypeChange(operation, index, newType) {
-    setOperations(operations.toSpliced(index, 1, {...operation, type: newType}));
+    onChange(index, {...operation, type: newType});
   }
   
   function handleCardSuffixChange(operation, index, newCardSuffix) {
-    setOperations(operations.toSpliced(index, 1, {...operation, cardSuffix: newCardSuffix}));
+    onChange(index, {...operation, cardSuffix: newCardSuffix});
   }
   
   const columns = [
@@ -83,60 +82,32 @@ function ImportReview({status, rows}) {
       label: 'Check number'
     }
   ];
-
-  function validate(row) {
-    return isValidCardOperation(row)
-      || isValidCheckOperation(row)
-      || isValidDebitOperation(row)
-      || isValidTransferOperation(row);
-  }
-  
-  function isValidCardOperation(row) {
-    return (row.type === 'card') &&
-      (row.cardSuffix) &&
-      (row.operationDate);
-  }
-  
-  function isValidCheckOperation(row) {
-    return (row.type === 'check') &&
-      (row.checkNumber) &&
-      (row.operationDate);
-  }
-  
-  function isValidDebitOperation(row) {
-    return (row.type === 'debit');
-  }
-
-  function isValidTransferOperation(row) {
-    return (row.type === 'transfer');
-  }
   
   return (
-    <>
-      <LinearProgress variant="determinate" value={operations.filter(validate).length * 100 / operations.length} />
-      <PaginatedTable
-        rowsPerPageOptions={[10, 50, 100]}
-        columns={columns}
-        rows={operations
-          .map((operation, index) => {
-            return (
-              <TableRow key={'operation-' + index} className={validate(operation) ? 'valid' : 'invalid'}>
-                {columns.map((column) => {
-                  return (
-                    <TableCell key={column.id} align={column.align || 'left'}>
-                      {column.value
-                        ? column.value(operation, index)
-                        :operation[column.id]
-                      }
-                    </TableCell>
-                  );
-                })}
-              </TableRow>
-            );
-          })
-        }
-      />
-    </>
+    <PaginatedTable
+      rowsPerPageOptions={[10, 50, 100]}
+      columns={columns}
+      ready={status === 'ready'}
+    >
+      {operations
+        .map((operation, index) => {
+          return (
+            <TableRow key={'operation-' + index} className={operation.isValid() ? 'valid' : 'invalid'}>
+              {columns.map((column) => {
+                return (
+                  <TableCell key={column.id} align={column.align || 'left'}>
+                    {column.value
+                      ? column.value(operation, index)
+                      :operation[column.id]
+                    }
+                  </TableCell>
+                );
+              })}
+            </TableRow>
+          );
+        })
+      }
+    </PaginatedTable>
   );
 }
 
