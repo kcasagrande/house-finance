@@ -21,7 +21,7 @@ object Statement {
     `type`: Option[Class[_ <: Operation]] = None,
     reference: Option[String] = None,
     operationDate: Option[LocalDate] = None,
-    cardSuffix: Option[String] = None,
+    card: Option[Card] = None,
     checkNumber: Option[String] = None
   )
 }

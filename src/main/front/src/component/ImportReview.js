@@ -1,16 +1,18 @@
 import './ImportReview.css';
+import configuration from '../Configuration';
+import { useEffect, useState } from 'react';
 import { MenuItem, Select, TableCell, TableRow, TextField } from '@mui/material';
 import PaginatedTable from '../widget/PaginatedTable';
 import OperationType from './OperationType';
+import CardChooser from './CardChooser';
 
-function ImportReview({status, operations, onChange}) {
-  
+function ImportReview({account, cards, status, operations, onChange}) {
   function handleTypeChange(operation, index, newType) {
     onChange(index, {...operation, type: newType});
   }
   
-  function handleCardSuffixChange(operation, index, newCardSuffix) {
-    onChange(index, {...operation, cardSuffix: newCardSuffix});
+  function handleCardChange(operation, index) {
+    return (newCard) => onChange(index, {...operation, card: newCard});
   }
   
   const columns = [
@@ -30,10 +32,6 @@ function ImportReview({status, operations, onChange}) {
           </Select>
         );
       }
-    },
-    {
-      id: 'reference',
-      label: 'Reference'
     },
     {
       id: 'label',
@@ -63,15 +61,15 @@ function ImportReview({status, operations, onChange}) {
       }
     },
     {
-      id: 'cardSuffix',
-      label: 'Card suffix',
+      id: 'card',
+      label: 'Card',
       value: (operation, index) => {
         return (
-          <TextField
-            variant="standard"
-            defaultValue={operation.cardSuffix}
-            onChange={(event) => handleCardSuffixChange(operation, index, event.target.value)}
-            disabled={operation.type !== 'card'}
+          <CardChooser
+            id={"card-chooser-" + index}
+            operation={operation}
+            cards={cards}
+            onChange={handleCardChange(operation, index)}
           />
         );
       }

@@ -23,34 +23,14 @@ import scala.util.{Failure, Success, Try}
 
 class StatementService(
   cardRepository: CardRepository
-)(implicit
-  operationIdGenerator: () => Operation.Id = () => UUID.randomUUID()
 ) {
   private[this] val rulesDirectory = "src/main/resources/rules.d/"
   private[this] def loadRulesFromFile(fileName: String): EitherT[IO, Throwable, List[Regex]] =
     EitherT.liftF(Files[IO].readUtf8(Path.fromNioPath(java.nio.file.Paths.get(rulesDirectory + fileName))).through(lines).map(_.r).compile.toList)
   
-  def `import`(account: Iban, content: Stream[IO, String]): EitherT[IO, Throwable, Seq[Operation]] = {
-    for {
-      cardRules <- loadRulesFromFile("card.txt")
-      checkRules <- loadRulesFromFile("check.txt")
-      debitRules <- loadRulesFromFile("debit.txt")
-      transferRules <- loadRulesFromFile("transfer.txt")
-      cards <- cardRepository.getByAccount(account)
-      operations <- EitherT(content
-        .through(attemptDecodeUsingHeaders[Statement.Row](';'))
-        .compile.toList
-        .map(_.toSeq)
-        .map(eitherThrowablesToEitherCompositeThrowable)
-      )
-        .flatMap(statementRows => EitherT.fromEither[IO](statementRows.map { statementRow => statementRowToOperation(statementRow, account, cards.map(_.number), cardRules, checkRules, debitRules, transferRules) }.traverse))
-    } yield {
-      operations
-    }
-  }
-  
   private[this] def parseRow(
     row: Statement.Row,
+    cards: Set[Card],
     rules: Seq[Regex]
   ): Statement.ParsedRow = {
     val matches = rules.find(_.matches(row.libelle))
@@ -67,20 +47,21 @@ class StatementService(
         .orElse(matches.groupOption("transfer").map(_ => classOf[Operation.ByTransfer])),
       reference = matches.groupOption("reference"),
       operationDate = matches.groupOption("incompleteDate").flatMap(computeOperationDate(_, row.date).toOption),
-      cardSuffix = matches.groupOption("cardSuffix"),
+      card = matches.groupOption("cardSuffix").flatMap(suffix => cards.find(_.number.endsWith(suffix))),
       checkNumber = matches.groupOption("checkNumber")
     )
   }
 
-  def parse(content: Stream[IO, String]): EitherT[IO, Throwable, Seq[Statement.ParsedRow]] =
+  def parse(account: Iban, content: Stream[IO, String]): EitherT[IO, Throwable, Seq[Statement.ParsedRow]] =
     for {
+      cards <- cardRepository.getByAccount(account)
       rules <- loadRulesFromFile("rules.txt")
       rows <- EitherT[IO, Throwable, Seq[Statement.Row]](
         content.through(attemptDecodeUsingHeaders[Statement.Row](';')).compile.toList
           .map(_.toSeq)
           .map(eitherThrowablesToEitherCompositeThrowable)
       )
-      parsedRows = rows.map(parseRow(_, rules))
+      parsedRows = rows.map(parseRow(_, cards, rules))
     } yield {
       parsedRows
     }

@@ -21,35 +21,14 @@ class StatementController(
   statementService: StatementService
 ) {
   def apply(): HttpRoutes[IO] = HttpRoutes.of[IO] {
-    case req @ POST -> Root =>
+    case req @ POST -> Root :? Iban(account) =>
       req.decode[Multipart[IO]] {
         _.parts
           .find(part => part.name.contains("statement") && part.filename.nonEmpty) match {
           case None => BadRequest("No statement file provided")
           case Some(part) =>
-            statementService.parse(part.body.through(clean))
-              .value
-              .flatMap {
-                case Left(throwable) => InternalServerError(throwable.getMessage)
-                case Right(parsedRows) => Ok(parsedRows)
-              }
-        }
-      }
-
-    case req @ POST -> Root :? Iban(account) =>
-      req.decode[Multipart[IO]] { _.parts
-        .find(part => part.name.contains("statement") && part.filename.nonEmpty) match {
-          case None => BadRequest("No statement file provided")
-          case Some(part) =>
-            statementService.`import`(account, part.body.through(clean))
-              .value
-              .flatMap {
-                case Left(throwable) => throwable match {
-                  case _: MatchError => BadRequest(throwable.getMessage)
-                  case _ => InternalServerError(throwable.getMessage)
-                }
-                case Right(parsedOperations) => Ok(parsedOperations)
-              }
+            statementService.parse(account, part.body.through(clean))
+              .toResponse
         }
       }
  }
@@ -89,7 +68,7 @@ object StatementController {
       "accountDate": ${row.accountDate},
       "valueDate": ${row.valueDate},
       "operationDate": ${row.operationDate},
-      "cardSuffix": ${row.cardSuffix},
+      "card": ${row.card.map(_.number)},
       "checkNumber": ${row.checkNumber}
     }""".dropNullValues
   }

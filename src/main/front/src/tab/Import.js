@@ -10,6 +10,7 @@ import ImportReview from '../component/ImportReview';
 function Import() {
   const [status, setStatus] = useState('initializing');
   const [selectedAccount, setSelectedAccount] = useState(null);
+  const [availableCards, setAvailableCards] = useState([]);
   const [selectedFile, setSelectedFile] = useState('');
   const [operations, setOperations] = useState([]);
 
@@ -20,7 +21,16 @@ function Import() {
   
   function changeSelectedAccount(account) {
     setSelectedAccount(account);
-    process(account, selectedFile);
+    fetch(configuration.api + "/accounts/" + account.iban + "/cards")
+      .then(response => {
+        if(response.ok) {
+          return response.json();
+        } else {
+          throw new Error('Response status is ' + response.status);
+        }
+      })
+      .then(setAvailableCards)
+      .then(() => process(account, selectedFile));
   }
 
   function replaceOperation(index, newOperation) {
@@ -33,7 +43,7 @@ function Import() {
       const formData = new FormData();
       formData.append('statement', file);
       return fetch(
-        configuration.api + "/statements",
+        configuration.api + "/statements?account=" + account.iban,
         {
           'method': 'POST',
           'body': formData
@@ -46,7 +56,7 @@ function Import() {
           isValidCardOperation() {
             return (
               this.type === 'card' &&
-              this.cardSuffix &&
+              this.card &&
               this.operationDate
             );
           },
@@ -112,7 +122,7 @@ function Import() {
           <Button variant="outlined" disabled={status !== 'reviewing'}>Reset</Button>
         </Stack>
         {(status === 'ready' ? <Progress valid={validOperations().length} total={operations.length} /> : <></>)}
-        <ImportReview status={status} operations={operations} onChange={replaceOperation} />
+        <ImportReview account={selectedAccount && selectedAccount.iban} cards={availableCards} status={status} operations={operations} onChange={replaceOperation} />
       </Stack>
     </Container>
   );

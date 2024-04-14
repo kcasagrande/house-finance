@@ -14,7 +14,7 @@ function FileChooser({onChange}) {
     <>
       <input ref={fileInput} type="file" accept="text/csv,.csv" onChange={handleChange} style={{display: 'none'}} />
       <Button variant="outlined" onClick={() => fileInput.current.click()}>Select file</Button>
-      <TextField variant="standard" InputProps={{readOnly: true}} value={selectedFile && selectedFile.name}></TextField>
+      <TextField variant="standard" InputProps={{readOnly: true}} value={selectedFile && selectedFile.name || ''}></TextField>
     </>
   );
 }

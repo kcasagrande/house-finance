@@ -35,7 +35,7 @@ function AccountChooser({onChange}) {
         onChange={event => onChange(event.target.value)}
       >
         {availableAccounts.map((account) =>
-          <MenuItem value={account}>{account.iban} - {account.holder}</MenuItem>
+          <MenuItem key={account.iban} value={account}>{account.iban} - {account.holder}</MenuItem>
         )}
       </Select>
     </FormControl>

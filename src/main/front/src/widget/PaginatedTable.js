@@ -46,8 +46,8 @@ function PaginatedTable({rowsPerPageOptions, columns, ready = true, children}) {
               ? children.slice(page * rowsPerPage, (1 + page) * rowsPerPage)
               : children
               )
-            : <TableRow key={null}>
-                {columns.map((column) => <TableCell><Skeleton /></TableCell>)}
+            : <TableRow key={''}>
+                {columns.map((column) => <TableCell key={column.id}><Skeleton /></TableCell>)}
               </TableRow>
           )}
         </TableBody>
