@@ -4,7 +4,7 @@ import anorm.SqlParser._
 import anorm._
 import cats.data.EitherT
 import cats.effect.IO
-import net.mindbuilt.finances.business.{Card, Iban}
+import net.mindbuilt.finances.business.{Card, Holder, Iban}
 import net.mindbuilt.finances.sqlite3.CardRepository._
 import net.mindbuilt.finances.{business => port}
 
@@ -78,6 +78,36 @@ class CardRepository(implicit val database: EitherT[IO, Throwable, Database])
       )(cardParser.set)
     }
 
+  override def getByAccountWithHolder(account: Iban): EitherT[IO, Throwable, Set[(Card, Holder.Single)]] =
+    withConnection { implicit connection: Connection =>
+      executeQueryWithEffect(
+        """SELECT
+          |  "c"."number" AS "number",
+          |  "c"."account_country_code" AS "account_country_code",
+          |  "c"."account_check_digits" AS "account_check_digits",
+          |  "c"."account_bban" AS "account_bban",
+          |  "h"."id" AS "holderId",
+          |  "h"."name" AS "holderName",
+          |  "c"."expiration" AS "expiration",
+          |  "c"."type" AS "type"
+          |FROM "card" "c"
+          |INNER JOIN "holder" "h"
+          |ON "c"."holder"="h"."id"
+          |WHERE
+          |  "c"."account_country_code"={accountCountryCode}
+          |AND
+          |  "c"."account_check_digits"={accountCheckDigits}
+          |AND
+          |  "c"."account_bban"={accountBban}
+          |""".stripMargin,
+        namedParameters(
+          "accountCountryCode" -> account.countryCode,
+          "accountCheckDigits" -> account.checkDigits,
+          "accountBban" -> account.bban
+        ):_*
+      )(cardWithHolderParser.set)
+    }
+
   override def save(card: Card): EitherT[IO, Throwable, Unit] =
     withConnection { implicit connection: Connection =>
       executeWithEffect(
@@ -123,5 +153,16 @@ object CardRepository {
     _type <- str("type")
   } yield {
     Card(number, account, holder, expiration, _type)
+  }
+  
+  private val cardWithHolderParser: RowParser[(Card, Holder.Single)] = for {
+    number <- str("number")
+    account <- iban("account_country_code", "account_check_digits", "account_bban")
+    holderId <- uuid("holderId")
+    holderName <- str("holderName")
+    expiration <- yearMonth("expiration")
+    _type <- str("type")
+  } yield {
+    (Card(number, account, holderId, expiration, _type), Holder.Single(holderId, holderName))
   }
 }

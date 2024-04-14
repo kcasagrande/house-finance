@@ -11,5 +11,6 @@ trait Module
   lazy val bankRepository: business.BankRepository = wire[BankRepository]
   lazy val accountRepository: business.AccountRepository = wire[AccountRepository]
   lazy val cardRepository: business.CardRepository = wire[CardRepository]
+  lazy val holderRepository: business.HolderRepository = wire[HolderRepository]
   lazy val operationRepository: business.OperationRepository = wire[OperationRepository]
 }

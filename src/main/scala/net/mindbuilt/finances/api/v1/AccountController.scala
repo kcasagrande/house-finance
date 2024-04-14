@@ -6,10 +6,12 @@ import io.circe.literal._
 import io.circe.syntax._
 import net.mindbuilt.finances.api.v1.AccountController._
 import net.mindbuilt.finances.application.AccountService
-import net.mindbuilt.finances.business.{Account, Holder, Iban}
+import net.mindbuilt.finances.business.{Account, Card, Holder, Iban}
 import org.http4s.HttpRoutes
 import org.http4s.circe.CirceEntityEncoder
 import org.http4s.dsl.io._
+
+import scala.language.implicitConversions
 
 class AccountController(
   accountService: AccountService
@@ -31,12 +33,16 @@ class AccountController(
           case Left(throwable) => InternalServerError(throwable.getMessage)
           case Right(holders) => Ok(holders.map(_.asJson))
         }
+      
+    case GET -> Root / IbanVar(account) / "cards" =>
+      accountService.getCardsByAccount(account)
+        .toResponse
   }
 
 }
 
 object AccountController {
-  object IbanVar {
+  private object IbanVar {
     def unapply(string: String): Option[Iban] =
       Some(string)
         .filter(_.nonEmpty)
@@ -52,6 +58,16 @@ object AccountController {
                 "holder": ${account.holder.name}
                 
           }"""
+  }
+  
+  implicit val cardEncoder: Encoder[(Card, Holder.Single)] = Encoder.instance {
+    case (card, holder) =>
+      json"""{
+               "number": ${card.number},
+               "type": ${card.`type`},
+               "expiration": ${card.expiration},
+               "holder": ${holder}
+             }"""
   }
   
   implicit val holderEncoder: Encoder[Holder.Single] = Encoder.instance {

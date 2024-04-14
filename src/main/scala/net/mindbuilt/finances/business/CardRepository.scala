@@ -7,5 +7,6 @@ trait CardRepository {
   def getAll: EitherT[IO, Throwable, Set[Card]]
   def getByNumber(number: Card.Number): EitherT[IO, Throwable, Option[Card]]
   def getByAccount(account: Iban): EitherT[IO, Throwable, Set[Card]]
+  def getByAccountWithHolder(account: Iban): EitherT[IO, Throwable, Set[(Card, Holder.Single)]]
   def save(card: Card): EitherT[IO, Throwable, Unit]
 }
