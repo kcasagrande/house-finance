@@ -1,6 +1,6 @@
 import configuration from '../Configuration';
 import { useState } from 'react';
-import { Button, Container, LinearProgress, Stack, Typography } from '@mui/material';
+import { Button, LinearProgress, Stack, Typography } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import AccountChooser from '../component/AccountChooser';
@@ -111,20 +111,18 @@ function Import() {
   }
 
   return (
-    <Container fixed>
-      <Stack direction="column" spacing={2} useFlexGap={true}>
-        <Stack direction="row" alignItems="flex-end" justifyContent="center" spacing={2} useFlexGap={true}>
-          <AccountChooser onChange={changeSelectedAccount} />
-          <FileChooser onChange={changeSelectedFile} />
-        </Stack>
-        <Stack direction="row" alignItems="center" justifyContent="center" spacing={2} useFlexGap={true}>
-          <Button variant="outlined" disabled={status !== 'reviewing'}>Submit</Button>
-          <Button variant="outlined" disabled={status !== 'reviewing'}>Reset</Button>
-        </Stack>
-        {(status === 'ready' ? <Progress valid={validOperations().length} total={operations.length} /> : <></>)}
-        <ImportReview account={selectedAccount && selectedAccount.iban} cards={availableCards} status={status} operations={operations} onChange={replaceOperation} />
+    <Stack direction="column" spacing={2} useFlexGap={true}>
+      <Stack direction="row" alignItems="flex-end" justifyContent="center" spacing={2} useFlexGap={true}>
+        <AccountChooser onChange={changeSelectedAccount} />
+        <FileChooser onChange={changeSelectedFile} />
       </Stack>
-    </Container>
+      <Stack direction="row" alignItems="center" justifyContent="center" spacing={2} useFlexGap={true}>
+        <Button variant="outlined" disabled={status !== 'reviewing'}>Submit</Button>
+        <Button variant="outlined" disabled={status !== 'reviewing'}>Reset</Button>
+      </Stack>
+      {(status === 'ready' ? <Progress valid={validOperations().length} total={operations.length} /> : <></>)}
+      <ImportReview account={selectedAccount && selectedAccount.iban} cards={availableCards} status={status} operations={operations} onChange={replaceOperation} />
+    </Stack>
   );
 }
 
