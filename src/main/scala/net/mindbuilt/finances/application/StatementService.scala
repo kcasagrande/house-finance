@@ -46,7 +46,9 @@ class StatementService(
         .orElse(matches.groupOption("debit").map(_ => classOf[Operation.ByDebit]))
         .orElse(matches.groupOption("transfer").map(_ => classOf[Operation.ByTransfer])),
       reference = matches.groupOption("reference"),
-      operationDate = matches.groupOption("incompleteDate").flatMap(computeOperationDate(_, row.date).toOption),
+      operationDate = matches.groupOption("incompleteDate").flatMap(computeOperationDate(_, row.date).toOption)
+        .orElse(matches.groupOption("debit").map(_ => row.date))
+        .orElse(matches.groupOption("transfer").map(_ => row.date)),
       card = matches.groupOption("cardSuffix").flatMap(suffix => cards.find(_.number.endsWith(suffix))),
       checkNumber = matches.groupOption("checkNumber")
     )

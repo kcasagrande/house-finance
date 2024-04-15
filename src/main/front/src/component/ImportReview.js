@@ -2,9 +2,11 @@ import './ImportReview.css';
 import configuration from '../Configuration';
 import { useEffect, useState } from 'react';
 import { MenuItem, Select, TableCell, TableRow, TextField } from '@mui/material';
+import { DatePicker } from '@mui/x-date-pickers';
 import PaginatedTable from '../widget/PaginatedTable';
 import OperationType from './OperationType';
 import CardChooser from './CardChooser';
+import dayjs from 'dayjs';
 
 function ImportReview({account, cards, status, operations, onChange}) {
   function handleTypeChange(operation, index, newType) {
@@ -13,6 +15,10 @@ function ImportReview({account, cards, status, operations, onChange}) {
   
   function handleCardChange(operation, index) {
     return (newCard) => onChange(index, {...operation, card: newCard});
+  }
+  
+  function handleOperationDateChange(operation, index) {
+    return (newOperationDate) => onChange(index, {...operation, operationDate: newOperationDate});
   }
   
   const columns = [
@@ -39,7 +45,23 @@ function ImportReview({account, cards, status, operations, onChange}) {
     },
     {
       id: 'operationDate',
-      label: 'Operation date'
+      label: 'Operation date',
+      value: (operation, index) => {
+        return (
+          <DatePicker
+            label="Operation date"
+            format="YYYY-MM-DD"
+            value={operation.operationDate ? dayjs(operation.operationDate) : null}
+            onChange={handleOperationDateChange(operation, index)}
+            sx={{ width: 200 }}
+            slotProps={{
+              field: {
+                clearable: true
+              }
+            }}
+          />
+        );
+      }
     },
     {
       id: 'valueDate',
