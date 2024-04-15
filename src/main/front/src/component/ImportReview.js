@@ -1,7 +1,6 @@
 import './ImportReview.css';
-import configuration from '../Configuration';
-import { useEffect, useState } from 'react';
-import { MenuItem, Select, TableCell, TableRow, TextField } from '@mui/material';
+import { MenuItem, Select, TableCell, TableRow, Tooltip } from '@mui/material';
+import InfoTwoToneIcon from '@mui/icons-material/InfoTwoTone';
 import { DatePicker } from '@mui/x-date-pickers';
 import PaginatedTable from '../widget/PaginatedTable';
 import OperationType from './OperationType';
@@ -22,6 +21,17 @@ function ImportReview({account, cards, status, operations, onChange}) {
   }
   
   const columns = [
+    {
+      id: 'reference',
+      label: 'Reference',
+      value: (operation, index) => {
+        return (
+          <Tooltip title={operation.reference}>
+            <InfoTwoToneIcon />
+          </Tooltip>
+        );
+      }
+    },
     {
       id: 'type',
       label: 'Type',

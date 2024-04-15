@@ -11,7 +11,6 @@ import UploadIcon from '@mui/icons-material/Upload';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import 'dayjs/locale/fr';
-import configuration from './Configuration';
 
 function App() {
   const [drawerOpen, setDrawerOpen] = React.useState(false);

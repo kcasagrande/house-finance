@@ -1,4 +1,3 @@
-import configuration from '../Configuration';
 import { FormControl, InputLabel, MenuItem, Select } from '@mui/material';
 
 function CardChooser({id, operation, cards = [], onChange }) {
