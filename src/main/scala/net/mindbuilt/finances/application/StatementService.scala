@@ -12,9 +12,11 @@ import net.mindbuilt.finances.application.StatementService._
 import net.mindbuilt.finances.business.{Card, CardRepository, Iban, Operation, Statement}
 import net.mindbuilt.finances.{Cents, IntToCents}
 
+import java.nio.charset.Charset
 import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
 import java.time.temporal.ChronoUnit.DAYS
 import java.util.{Locale, UUID}
 import scala.language.{implicitConversions, postfixOps}
@@ -37,6 +39,14 @@ class StatementService(
       .flatMap(_.findFirstMatchIn(row.libelle))
       .getOrElse("".r.findFirstMatchIn("").get)
     Statement.ParsedRow(
+      reference = matches.groupOption("reference").map("ref:" + _)
+        .getOrElse("uuid:" + UUID.nameUUIDFromBytes(Seq(
+          row.libelle,
+          row.credit,
+          row.debit,
+          ISO_LOCAL_DATE.format(row.date),
+          ISO_LOCAL_DATE.format(row.dateValeur)
+        ).mkString("\n").getBytes(Charset.forName("UTF-8")))),
       label = row.libelle,
       credit = row.credit - row.debit,
       accountDate = row.date,
@@ -45,7 +55,6 @@ class StatementService(
         .orElse(matches.groupOption("check").map(_ => classOf[Operation.ByCheck]))
         .orElse(matches.groupOption("debit").map(_ => classOf[Operation.ByDebit]))
         .orElse(matches.groupOption("transfer").map(_ => classOf[Operation.ByTransfer])),
-      reference = matches.groupOption("reference"),
       operationDate = matches.groupOption("incompleteDate").flatMap(computeOperationDate(_, row.date).toOption)
         .orElse(matches.groupOption("debit").map(_ => row.date))
         .orElse(matches.groupOption("transfer").map(_ => row.date)),

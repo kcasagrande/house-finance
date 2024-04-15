@@ -61,8 +61,8 @@ object StatementController {
   
   implicit val parsedRowEncoder: Encoder[Statement.ParsedRow] = Encoder.instance { (row: Statement.ParsedRow) =>
     json"""{
-      "type": ${row.`type`},
       "reference": ${row.reference},
+      "type": ${row.`type`},
       "label": ${row.label},
       "credit": ${row.credit},
       "accountDate": ${row.accountDate},

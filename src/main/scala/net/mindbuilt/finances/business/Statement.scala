@@ -14,12 +14,12 @@ object Statement {
   )
 
   case class ParsedRow(
+    reference: String,
     label: String,
     credit: Cents,
     accountDate: LocalDate,
     valueDate: LocalDate,
     `type`: Option[Class[_ <: Operation]] = None,
-    reference: Option[String] = None,
     operationDate: Option[LocalDate] = None,
     card: Option[Card] = None,
     checkNumber: Option[String] = None
