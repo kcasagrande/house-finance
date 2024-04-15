@@ -1,5 +1,5 @@
 import './ImportReview.css';
-import { MenuItem, Select, TableCell, TableRow, Tooltip } from '@mui/material';
+import { MenuItem, Select, TableCell, TableRow, TextField, Tooltip } from '@mui/material';
 import InfoTwoToneIcon from '@mui/icons-material/InfoTwoTone';
 import { DatePicker } from '@mui/x-date-pickers';
 import PaginatedTable from '../widget/PaginatedTable';
@@ -14,6 +14,10 @@ function ImportReview({account, cards, status, operations, onChange}) {
   
   function handleCardChange(operation, index) {
     return (newCard) => onChange(index, {...operation, card: newCard});
+  }
+  
+  function handleCheckNumberChange(operation, index) {
+    return (newCheckNumber) => onChange(index, {...operation, checkNumber: newCheckNumber});
   }
   
   function handleOperationDateChange(operation, index) {
@@ -104,13 +108,27 @@ function ImportReview({account, cards, status, operations, onChange}) {
             operation={operation}
             cards={cards}
             onChange={handleCardChange(operation, index)}
+            sx={{
+              display: (operation.type === 'card' ? 'inline-flex' : 'none')
+            }}
           />
         );
       }
     },
     {
       id: 'checkNumber',
-      label: 'Check number'
+      label: 'Check number',
+      value: (operation, index) => {
+        return (
+          <TextField
+            value={operation.checkNumber}
+            onChange={handleCheckNumberChange(operation, index)}
+            sx={{
+              display: (operation.type === 'check' ? 'inline-flex' : 'none')
+            }}
+          />
+        );
+      }
     }
   ];
   
