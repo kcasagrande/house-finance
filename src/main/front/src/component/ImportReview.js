@@ -24,6 +24,7 @@ function ImportReview({account, cards, status, operations, onChange}) {
     {
       id: 'reference',
       label: 'Reference',
+      align: 'center',
       value: (operation, index) => {
         return (
           <Tooltip title={operation.reference}>
@@ -51,7 +52,8 @@ function ImportReview({account, cards, status, operations, onChange}) {
     },
     {
       id: 'label',
-      label: 'Label'
+      label: 'Label',
+      align: 'left'
     },
     {
       id: 'operationDate',

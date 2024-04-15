@@ -32,7 +32,7 @@ function PaginatedTable({rowsPerPageOptions, columns, ready = true, children}) {
             {columns.map((column) =>
               <TableCell
                 key={column.id}
-                align={column.align || 'left'}
+                align={column.align || 'center'}
                 style={{ minWidth: column.minWidth || 'auto' }}
                >
                  {column.label}
