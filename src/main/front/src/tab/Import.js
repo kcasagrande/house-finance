@@ -121,7 +121,7 @@ function Import() {
         <Button variant="outlined" disabled={status !== 'reviewing'}>Reset</Button>
       </Stack>
       {(status === 'ready' ? <Progress valid={validOperations().length} total={operations.length} /> : <></>)}
-      <ImportReview account={selectedAccount && selectedAccount.iban} cards={availableCards} status={status} operations={operations} onChange={replaceOperation} />
+      <ImportReview account={selectedAccount && selectedAccount.iban} cards={availableCards} status={status} operations={operations} onOperationChange={replaceOperation} />
     </Stack>
   );
 }

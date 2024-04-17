@@ -28,8 +28,8 @@ function OperationType(props) {
   };
 
   return (
-    <Tooltip title={types[type] && types[type]['label'] || 'Type indéterminé'}>
-      {types[type] && types[type]['icon'] || <BrokenImageIcon />}
+    <Tooltip title={(types[type] && types[type]['label']) || 'Type indéterminé'}>
+      {(types[type] && types[type]['icon']) || <BrokenImageIcon />}
     </Tooltip>
   );
 }

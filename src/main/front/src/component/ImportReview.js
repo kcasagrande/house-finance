@@ -7,21 +7,22 @@ import OperationType from './OperationType';
 import CardChooser from './CardChooser';
 import dayjs from 'dayjs';
 
-function ImportReview({account, cards, status, operations, onChange}) {
-  function handleTypeChange(operation, index, newType) {
-    onChange(index, {...operation, type: newType});
+function ImportReview({account, cards, status, operations, onOperationChange}) {
+
+  function handleTypeChange(operation, index) {
+    return (newType) => onOperationChange(index, {...operation, type: newType});
   }
   
   function handleCardChange(operation, index) {
-    return (newCard) => onChange(index, {...operation, card: newCard});
+    return (newCard) => onOperationChange(index, {...operation, card: newCard});
   }
   
   function handleCheckNumberChange(operation, index) {
-    return (newCheckNumber) => onChange(index, {...operation, checkNumber: newCheckNumber});
+    return (newCheckNumber) => onOperationChange(index, {...operation, checkNumber: newCheckNumber});
   }
   
   function handleOperationDateChange(operation, index) {
-    return (newOperationDate) => onChange(index, {...operation, operationDate: newOperationDate});
+    return (newOperationDate) => onOperationChange(index, {...operation, operationDate: newOperationDate});
   }
   
   const columns = [
@@ -44,7 +45,7 @@ function ImportReview({account, cards, status, operations, onChange}) {
         return (
           <Select
             defaultValue={operation.type}
-            onChange={(event) => handleTypeChange(operation, index, event.target.value)}
+            onChange={(event) => handleTypeChange(operation, index)(event.target.value)}
             >
             <MenuItem value="card"><OperationType type="card" /></MenuItem>
             <MenuItem value="check"><OperationType type="check" /></MenuItem>
@@ -102,17 +103,18 @@ function ImportReview({account, cards, status, operations, onChange}) {
       id: 'card',
       label: 'Card',
       value: (operation, index) => {
-        return (
-          <CardChooser
-            id={"card-chooser-" + index}
-            operation={operation}
-            cards={cards}
-            onChange={handleCardChange(operation, index)}
-            sx={{
-              display: (operation.type === 'card' ? 'inline-flex' : 'none')
-            }}
-          />
-        );
+        if(operation.type === 'card') {
+          return (
+            <CardChooser
+              id={"card-chooser-" + index}
+              operation={operation}
+              cards={cards}
+              onChange={handleCardChange(operation, index)}
+            />
+          );
+        } else {
+          return <></>;
+        }
       }
     },
     {

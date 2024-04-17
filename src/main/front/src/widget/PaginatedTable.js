@@ -1,5 +1,6 @@
 import React from 'react';
-import { Paper, Skeleton, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow } from '@mui/material';
+import { Paper, Skeleton, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, ToggleButton } from '@mui/material';
+import BrokenImageIcon from '@mui/icons-material/BrokenImage';
 
 function PaginatedTable({rowsPerPageOptions, columns, ready = true, children}) {
   const [page, setPage] = React.useState(0);

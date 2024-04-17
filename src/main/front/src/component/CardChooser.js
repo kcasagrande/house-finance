@@ -9,11 +9,11 @@ function CardChooser({id, operation, cards = [], onChange, sx }) {
         labelId={id + "-label"}
         label="Card"
         onChange={event => onChange(event.target.value)}
-        defaultValue={operation.card}
-        disabled={operation.type !== 'card'}
+        defaultValue={operation.card || ''}
       >
+        <MenuItem key="" value=""></MenuItem>
         {cards.map((card) =>
-          <MenuItem value={card.number}>{card.number.substring(12, 16)} - {card.holder.name}</MenuItem>
+          <MenuItem key={card.number} value={card.number}>{card.number.substring(12, 16)} - {card.holder.name}</MenuItem>
         )}
       </Select>
     </FormControl>

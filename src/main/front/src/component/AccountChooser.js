@@ -32,6 +32,7 @@ function AccountChooser({onChange}) {
         id="account-iban-select"
         labelId="account-iban-select-label"
         label="Account"
+        defaultValue={''}
         onChange={event => onChange(event.target.value)}
       >
         {availableAccounts.map((account) =>

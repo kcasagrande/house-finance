@@ -1,6 +1,6 @@
 import React from 'react';
-import { Autocomplete, Avatar, Button, Chip, Fab, FormControl, Icon, IconButton, Menu, MenuItem, Select, Stack, TableRow, TableCell, TextField, Tooltip } from '@mui/material';
-import { AddCircle, Balance, Cancel, CheckCircleOutline, Flaky, PendingOutlined } from '@mui/icons-material';
+import { Autocomplete, Avatar, Chip, IconButton, Stack, TableRow, TableCell, TextField, Tooltip } from '@mui/material';
+import { AddCircle, Cancel, Flaky, PendingOutlined } from '@mui/icons-material';
 import Breakdown from './Breakdown';
 import SaveStatusIndicator from './SaveStatusIndicator';
 import {centsAsEurosString} from '../Cents';
