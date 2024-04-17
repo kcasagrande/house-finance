@@ -1,5 +1,5 @@
 import configuration from '../Configuration';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, LinearProgress, Stack, Typography } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
@@ -8,41 +8,65 @@ import FileChooser from '../component/FileChooser';
 import ImportReview from '../component/ImportReview';
 
 function Import() {
-  const [status, setStatus] = useState('initializing');
-  const [selectedAccount, setSelectedAccount] = useState(null);
-  const [availableCards, setAvailableCards] = useState([]);
-  const [selectedFile, setSelectedFile] = useState('');
+  const [accounts, setAccounts] = useState([]);
+  const [cards, setCards] = useState([]);
   const [operations, setOperations] = useState([]);
+  const [account, setAccount] = useState(null);
+  const [selectedFile, setSelectedFile] = useState('');
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    if(!ready) {
+      fetch(configuration.api + "/accounts")
+        .then(response => {
+          if(response.ok) {
+            return response.json();
+          } else {
+            throw new Error('Response status is ' + response.status);
+          }
+        })
+        .then(setAccounts)
+        .then(() => setReady(true));
+    }
+  }, [ready]);
+  
+  useEffect(() => {
+    if(!!account) {
+      fetch(configuration.api + "/accounts/" + account.iban + "/cards")
+        .then(response => {
+          if(response.ok) {
+            return response.json();
+          } else {
+            throw new Error('Response status is ' + response.status);
+          }
+        })
+        .then(setCards);
+    }
+  }, [account]);
+
+  useEffect(() => {
+    if(!!account && !!selectedFile) {
+      process(account, selectedFile);
+    }
+  }, [account, selectedFile]);
 
   function changeSelectedFile(file) {
     setSelectedFile(file);
-    process(selectedAccount, file);
   }
   
   function changeSelectedAccount(account) {
-    setSelectedAccount(account);
-    fetch(configuration.api + "/accounts/" + account.iban + "/cards")
-      .then(response => {
-        if(response.ok) {
-          return response.json();
-        } else {
-          throw new Error('Response status is ' + response.status);
-        }
-      })
-      .then(setAvailableCards)
-      .then(() => process(account, selectedFile));
+    setAccount(account);
   }
 
-  function replaceOperation(index, newOperation) {
-    setOperations(operations.toSpliced(index, 1, newOperation));
+  function replaceOperation(newOperation) {
+    setOperations(operations.toSpliced(newOperation.key, 1, newOperation));
   }
 
   function process(account, file) {
     if(!!account && !!file) {
-      setStatus('parsing');
       const formData = new FormData();
       formData.append('statement', file);
-      return fetch(
+      fetch(
         configuration.api + "/statements?account=" + account.iban,
         {
           'method': 'POST',
@@ -50,8 +74,9 @@ function Import() {
         }
       )
       .then(response => response.json())
-      .then(json => json.map(operation => {
+      .then(json => json.map((operation, index) => {
         return {
+          key: index,
           ...operation,
           isValidCardOperation() {
             return (
@@ -89,8 +114,7 @@ function Import() {
           }
         };
       }))
-      .then(_operations => setOperations(_operations))
-      .then(() => setStatus('ready'));
+      .then(_operations => setOperations(_operations));
     }
   }
 
@@ -113,15 +137,15 @@ function Import() {
   return (
     <Stack direction="column" spacing={2} useFlexGap={true}>
       <Stack direction="row" alignItems="flex-end" justifyContent="center" spacing={2} useFlexGap={true}>
-        <AccountChooser onChange={changeSelectedAccount} />
+        <AccountChooser accounts={accounts} onChange={changeSelectedAccount} />
         <FileChooser onChange={changeSelectedFile} />
       </Stack>
       <Stack direction="row" alignItems="center" justifyContent="center" spacing={2} useFlexGap={true}>
-        <Button variant="outlined" disabled={status !== 'reviewing'}>Submit</Button>
-        <Button variant="outlined" disabled={status !== 'reviewing'}>Reset</Button>
+        <Button variant="outlined" disabled={operations.length <= 0 || validOperations().length !== operations.length}>Submit</Button>
+        <Button variant="outlined">Reset</Button>
       </Stack>
-      {(status === 'ready' ? <Progress valid={validOperations().length} total={operations.length} /> : <></>)}
-      <ImportReview account={selectedAccount && selectedAccount.iban} cards={availableCards} status={status} operations={operations} onOperationChange={replaceOperation} />
+      <Progress valid={validOperations().length} total={operations.length} />
+      <ImportReview cards={cards} operations={operations} onOperationChange={replaceOperation} />
     </Stack>
   );
 }

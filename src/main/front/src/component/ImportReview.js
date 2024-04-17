@@ -1,28 +1,32 @@
 import './ImportReview.css';
-import { MenuItem, Select, TableCell, TableRow, TextField, Tooltip } from '@mui/material';
-import InfoTwoToneIcon from '@mui/icons-material/InfoTwoTone';
+import { TableCell, TableRow, TextField } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers';
 import PaginatedTable from '../widget/PaginatedTable';
-import OperationType from './OperationType';
+import Reference from './Reference';
+import Type from './Type';
 import CardChooser from './CardChooser';
 import dayjs from 'dayjs';
 
-function ImportReview({account, cards, status, operations, onOperationChange}) {
+function ImportReview({cards, operations, onOperationChange}) {
 
-  function handleTypeChange(operation, index) {
-    return (newType) => onOperationChange(index, {...operation, type: newType});
+  function modifyOperation(operation, field) {
+    return (newValue) => {
+      const newOperation = {...operation};
+      newOperation[field] = newValue;
+      onOperationChange(newOperation);
+    }
   }
-  
+
   function handleCardChange(operation, index) {
-    return (newCard) => onOperationChange(index, {...operation, card: newCard});
+    return (newCard) => onOperationChange({...operation, card: newCard});
   }
   
   function handleCheckNumberChange(operation, index) {
-    return (newCheckNumber) => onOperationChange(index, {...operation, checkNumber: newCheckNumber});
+    return (newCheckNumber) => onOperationChange({...operation, checkNumber: newCheckNumber});
   }
   
   function handleOperationDateChange(operation, index) {
-    return (newOperationDate) => onOperationChange(index, {...operation, operationDate: newOperationDate});
+    return (newOperationDate) => onOperationChange({...operation, operationDate: newOperationDate});
   }
   
   const columns = [
@@ -32,26 +36,19 @@ function ImportReview({account, cards, status, operations, onOperationChange}) {
       align: 'center',
       value: (operation, index) => {
         return (
-          <Tooltip title={operation.reference}>
-            <InfoTwoToneIcon />
-          </Tooltip>
+          <Reference value={operation.reference} />
         );
       }
     },
     {
       id: 'type',
       label: 'Type',
-      value: (operation, index) => {
+      value: (operation) => {
         return (
-          <Select
+          <Type
             defaultValue={operation.type}
-            onChange={(event) => handleTypeChange(operation, index)(event.target.value)}
-            >
-            <MenuItem value="card"><OperationType type="card" /></MenuItem>
-            <MenuItem value="check"><OperationType type="check" /></MenuItem>
-            <MenuItem value="debit"><OperationType type="debit" /></MenuItem>
-            <MenuItem value="transfer"><OperationType type="transfer" /></MenuItem>
-          </Select>
+            onChange={modifyOperation(operation, 'type')}
+          />
         );
       }
     },
@@ -69,7 +66,7 @@ function ImportReview({account, cards, status, operations, onOperationChange}) {
             label="Operation date"
             format="YYYY-MM-DD"
             value={operation.operationDate ? dayjs(operation.operationDate) : null}
-            onChange={handleOperationDateChange(operation, index)}
+            onChange={(value) => modifyOperation(operation, 'operationDate')(!!value ? value.format('YYYY-MM-DD') : null)}
             sx={{ width: 200 }}
             slotProps={{
               field: {
@@ -123,8 +120,12 @@ function ImportReview({account, cards, status, operations, onOperationChange}) {
       value: (operation, index) => {
         return (
           <TextField
-            value={operation.checkNumber}
-            onChange={handleCheckNumberChange(operation, index)}
+            defaultValue={operation.checkNumber}
+            onKeyPress={(event) => {
+              if(event.key === 'Enter') {
+                modifyOperation(operation, 'checkNumber')(event.target.value);
+              }
+            }}
             sx={{
               display: (operation.type === 'check' ? 'inline-flex' : 'none')
             }}
@@ -138,27 +139,25 @@ function ImportReview({account, cards, status, operations, onOperationChange}) {
     <PaginatedTable
       rowsPerPageOptions={[10, 50, 100]}
       columns={columns}
-      ready={status === 'ready'}
-    >
-      {operations
-        .map((operation, index) => {
-          return (
-            <TableRow key={'operation-' + index} className={operation.isValid() ? 'valid' : 'invalid'}>
-              {columns.map((column) => {
-                return (
-                  <TableCell key={column.id} align={column.align || 'left'}>
-                    {column.value
-                      ? column.value(operation, index)
-                      :operation[column.id]
-                    }
-                  </TableCell>
-                );
-              })}
-            </TableRow>
-          );
-        })
-      }
-    </PaginatedTable>
+      ready={operations.length > 0}
+      data={operations}
+      format={(operation, index, data) => {
+        return (
+          <TableRow key={'operation-' + operation.key} className={operation.isValid() ? 'valid' : 'invalid'}>
+            {columns.map((column) => {
+              return (
+                <TableCell key={column.id} align={column.align || 'left'}>
+                  {column.value
+                    ? column.value(operation, index)
+                    :operation[column.id]
+                  }
+                </TableCell>
+              );
+            })}
+          </TableRow>
+        );
+      }}
+    />
   );
 }
 

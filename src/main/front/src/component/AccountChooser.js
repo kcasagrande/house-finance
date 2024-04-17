@@ -2,29 +2,7 @@ import configuration from '../Configuration';
 import { useEffect, useState } from 'react';
 import { FormControl, InputLabel, MenuItem, Select } from '@mui/material';
 
-function fetchAccounts(callback) {
-  return fetch(configuration.api + "/accounts")
-    .then(response => {
-      if(response.ok) {
-        return response.json();
-      } else {
-        throw new Error('Response status is ' + response.status);
-      }
-    })
-    .then(callback);
-}
-
-function AccountChooser({onChange}) {
-  const [ready, setReady] = useState(false);
-  const [availableAccounts, setAvailableAccounts] = useState([]);
-  
-  useEffect(() => {
-    if(!ready) {
-      fetchAccounts(setAvailableAccounts)
-        .then(() => setReady(true));
-    }
-  }, [ready]);
-  
+function AccountChooser({accounts, onChange}) {
   return (
     <FormControl sx={{ width: 325 }}>
       <InputLabel id="account-iban-select-label">Account</InputLabel>
@@ -35,7 +13,7 @@ function AccountChooser({onChange}) {
         defaultValue={''}
         onChange={event => onChange(event.target.value)}
       >
-        {availableAccounts.map((account) =>
+        {accounts.map((account) =>
           <MenuItem key={account.iban} value={account}>{account.iban} - {account.holder}</MenuItem>
         )}
       </Select>
