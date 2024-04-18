@@ -71,6 +71,9 @@ function ImportReview({cards, operations, onOperationChange}) {
             slotProps={{
               field: {
                 clearable: true
+              },
+              textField: {
+                size: 'small'
               }
             }}
           />
@@ -121,6 +124,7 @@ function ImportReview({cards, operations, onOperationChange}) {
         if(operation.method === 'check') {
           return (
             <TextField
+              size="small"
               defaultValue={operation.checkNumber}
               onKeyPress={(event) => {
                 if(event.key === 'Enter') {

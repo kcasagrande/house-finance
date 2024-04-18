@@ -2,7 +2,7 @@ import { FormControl, InputLabel, MenuItem, Select } from '@mui/material';
 
 function CardChooser({id, operation, cards = [], onChange, sx }) {
   return (
-    <FormControl sx={{ ...sx, width: 100 }}>
+    <FormControl sx={{ ...sx, width: 100 }} size="small">
       <InputLabel id={id + "-label"}>Card</InputLabel>
       <Select
         id={id}

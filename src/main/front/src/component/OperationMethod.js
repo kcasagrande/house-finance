@@ -11,25 +11,25 @@ function OperationMethod(props) {
   const methods = {
     'card': {
       'label': 'Paiement par carte',
-      'icon': <CreditCardIcon />
+      'icon': <CreditCardIcon fontSize="small" />
     },
     'check': {
       'label': 'Chèque',
-      'icon': <BorderColorIcon />
+      'icon': <BorderColorIcon fontSize="small" />
     },
     'debit': {
       'label': 'Prélèvement',
-      'icon': <OutputIcon />
+      'icon': <OutputIcon fontSize="small" />
     },
     'transfer': {
       'label': 'Virement',
-      'icon': <SyncAltIcon />
+      'icon': <SyncAltIcon fontSize="small" />
     }
   };
 
   return (
     <Tooltip title={(methods[method] && methods[method]['label']) || 'Méthode indéterminée'}>
-      {(methods[method] && methods[method]['icon']) || <BrokenImageIcon />}
+      {(methods[method] && methods[method]['icon']) || <BrokenImageIcon fontSize="small" />}
     </Tooltip>
   );
 }

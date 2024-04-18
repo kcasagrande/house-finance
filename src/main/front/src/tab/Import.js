@@ -2,7 +2,7 @@ import configuration from '../Configuration';
 import { useEffect, useState } from 'react';
 import { Button, LinearProgress, Stack, Typography } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import ErrorIcon from '@mui/icons-material/Error';
+import DoNotDisturbOnIcon from '@mui/icons-material/DoNotDisturbOn';
 import AccountChooser from '../component/AccountChooser';
 import FileChooser from '../component/FileChooser';
 import ImportReview from '../component/ImportReview';
@@ -139,8 +139,8 @@ function Import() {
     return (
       <>
         <Stack direction="row" alignItems="center" justifyContent="center" spacing={2} useFlexGap={true}>
-           {(valid === total ? <CheckCircleIcon sx={{ color: 'green' }} /> : <ErrorIcon sx={{ color: 'red' }} />)}
-           <Typography variant="button">{valid} / {total}</Typography>
+           {(valid === total ? <CheckCircleIcon sx={{ color: 'green' }} /> : <DoNotDisturbOnIcon sx={{ color: 'red' }} />)}
+           <Typography variant="button">{total} operations, {valid} valid, {total - valid} invalid</Typography>
         </Stack>
         <LinearProgress variant="determinate" value={valid * 100 / total} />
       </>
