@@ -1,5 +1,3 @@
-import configuration from '../Configuration';
-import { useEffect, useState } from 'react';
 import { FormControl, InputLabel, MenuItem, Select } from '@mui/material';
 
 function AccountChooser({accounts, onChange}) {
@@ -14,7 +12,7 @@ function AccountChooser({accounts, onChange}) {
         onChange={event => onChange(event.target.value)}
       >
         {accounts.map((account) =>
-          <MenuItem key={account.iban} value={account}>{account.iban} - {account.holder}</MenuItem>
+          <MenuItem key={account.iban.asString()} value={account}>{account.iban.asString()} - {account.holder}</MenuItem>
         )}
       </Select>
     </FormControl>

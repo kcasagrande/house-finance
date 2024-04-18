@@ -73,20 +73,6 @@ object OperationController {
       Try(UUID.fromString(pathParameter)).toOption
   }
 
-  implicit val centsDecoder: Decoder[Cents] = Decoder.decodeInt.map(Cents)
-  implicit val ibanDecoder: Decoder[Iban] = (c: HCursor) =>
-    (
-      for {
-        countryCode <- c.downField("countryCode").as[String]
-        checkDigits <- c.downField("checkDigits").as[String]
-        bban <- c.downField("bban").as[String]
-      } yield {
-        Iban(countryCode, checkDigits, bban)
-      }
-    )
-      .flatMap(_.toEither)
-      .left.map(DecodingFailure.fromThrowable(_, c.history))
-
   implicit val operationDecoder: Decoder[Operation] = (c: HCursor) => {
     c.downField("method").as[String].flatMap {
       case "card" => for {

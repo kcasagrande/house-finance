@@ -100,7 +100,7 @@ function ImportReview({cards, operations, onOperationChange}) {
       id: 'card',
       label: 'Card',
       value: (operation, index) => {
-        if(operation.type === 'card') {
+        if(operation.method === 'card') {
           return (
             <CardChooser
               id={"card-chooser-" + index}
@@ -110,7 +110,7 @@ function ImportReview({cards, operations, onOperationChange}) {
             />
           );
         } else {
-          return <></>;
+          return (<></>);
         }
       }
     },
@@ -118,19 +118,20 @@ function ImportReview({cards, operations, onOperationChange}) {
       id: 'checkNumber',
       label: 'Check number',
       value: (operation, index) => {
-        return (
-          <TextField
-            defaultValue={operation.checkNumber}
-            onKeyPress={(event) => {
-              if(event.key === 'Enter') {
-                modifyOperation(operation, 'checkNumber')(event.target.value);
-              }
-            }}
-            sx={{
-              display: (operation.type === 'check' ? 'inline-flex' : 'none')
-            }}
-          />
-        );
+        if(operation.method === 'check') {
+          return (
+            <TextField
+              defaultValue={operation.checkNumber}
+              onKeyPress={(event) => {
+                if(event.key === 'Enter') {
+                  modifyOperation(operation, 'checkNumber')(event.target.value);
+                }
+              }}
+            />
+          );
+        } else {
+          return (<></>);
+        }
       }
     }
   ];

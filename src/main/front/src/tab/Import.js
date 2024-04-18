@@ -25,6 +25,19 @@ function Import() {
             throw new Error('Response status is ' + response.status);
           }
         })
+        .then(json => {
+          return json.map(account => {
+            return {
+              ...account,
+              iban: {
+                ...account.iban,
+                asString() {
+                  return account.iban.countryCode + account.iban.checkDigits + account.iban.bban;
+                }
+              }
+            };
+          });
+        })
         .then(setAccounts)
         .then(() => setReady(true));
     }
@@ -32,7 +45,7 @@ function Import() {
   
   useEffect(() => {
     if(!!account) {
-      fetch(configuration.api + "/accounts/" + account.iban + "/cards")
+      fetch(configuration.api + "/accounts/" + account.iban.asString() + "/cards")
         .then(response => {
           if(response.ok) {
             return response.json();
@@ -67,7 +80,7 @@ function Import() {
       const formData = new FormData();
       formData.append('statement', file);
       fetch(
-        configuration.api + "/statements?account=" + account.iban,
+        configuration.api + "/statements?account=" + account.iban.asString(),
         {
           'method': 'POST',
           'body': formData

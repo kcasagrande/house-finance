@@ -52,7 +52,7 @@ object AccountController {
   implicit val accountEncoder: Encoder[Account] = Encoder.instance {
     (account: Account) =>
       json"""{
-                "iban": ${account.iban.toString},
+                "iban": ${account.iban},
                 "bic": ${account.bank.toString},
                 "domiciliation": ${account.domiciliation},
                 "holder": ${account.holder.name}

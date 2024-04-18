@@ -12,10 +12,10 @@ function Method({defaultValue, onChange}) {
         onChange(event.target.value);
       }}
     >
-      <MenuItem value="card"><OperationMethod type="card" /></MenuItem>
-      <MenuItem value="check"><OperationMethod type="check" /></MenuItem>
-      <MenuItem value="debit"><OperationMethod type="debit" /></MenuItem>
-      <MenuItem value="transfer"><OperationMethod type="transfer" /></MenuItem>
+      <MenuItem value="card"><OperationMethod method="card" /></MenuItem>
+      <MenuItem value="check"><OperationMethod method="check" /></MenuItem>
+      <MenuItem value="debit"><OperationMethod method="debit" /></MenuItem>
+      <MenuItem value="transfer"><OperationMethod method="transfer" /></MenuItem>
     </Select>
   );
 }
