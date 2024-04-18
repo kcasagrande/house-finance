@@ -55,6 +55,7 @@ function ImportReview({cards, operations, onOperationChange}) {
             format="YYYY-MM-DD"
             value={operation.operationDate ? dayjs(operation.operationDate) : null}
             onChange={(value) => modifyOperation(operation, 'operationDate')(!!value ? value.format('YYYY-MM-DD') : null)}
+            referenceDate={dayjs(operation.accountDate)}
             sx={{ width: 200 }}
             slotProps={{
               field: {
