@@ -31,7 +31,9 @@ class StatementService(
     EitherT.liftF(Files[IO].readUtf8(Path.fromNioPath(java.nio.file.Paths.get(rulesDirectory + fileName))).through(lines).map(_.r).compile.toList)
   
   private[this] def parseRow(
+    account: Iban,
     row: Statement.Row,
+    dateIndex: Int,
     cards: Set[Card],
     rules: Seq[Regex]
   ): Statement.ParsedRow = {
@@ -39,14 +41,17 @@ class StatementService(
       .flatMap(_.findFirstMatchIn(row.libelle))
       .getOrElse("".r.findFirstMatchIn("").get)
     Statement.ParsedRow(
-      reference = matches.groupOption("reference").map("ref:" + _)
-        .getOrElse("uuid:" + UUID.nameUUIDFromBytes(Seq(
-          row.libelle,
-          row.credit,
-          row.debit,
+      id = UUID.nameUUIDFromBytes(
+        "%s:%s:%d:%d:%s".format(
+          account,
           ISO_LOCAL_DATE.format(row.date),
-          ISO_LOCAL_DATE.format(row.dateValeur)
-        ).mkString("\n").getBytes(Charset.forName("UTF-8")))),
+          dateIndex,
+          (row.credit - row.debit).value,
+          row.libelle
+        )
+          .getBytes(Charset.forName("UTF-8"))
+      ),
+      reference = matches.groupOption("reference"),
       label = row.libelle,
       credit = row.credit - row.debit,
       accountDate = row.date,
@@ -72,7 +77,14 @@ class StatementService(
           .map(_.toSeq)
           .map(eitherThrowablesToEitherCompositeThrowable)
       )
-      parsedRows = rows.map(parseRow(_, cards, rules))
+      parsedRows = rows
+        .groupBy(_.date)
+        .view
+        .mapValues(_.zipWithIndex)
+        .values.flatten.toSeq
+        .map {
+          case (row, dateIndex) => parseRow(account, row, dateIndex, cards, rules)
+        }
     } yield {
       parsedRows
     }
