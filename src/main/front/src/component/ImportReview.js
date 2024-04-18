@@ -17,18 +17,6 @@ function ImportReview({cards, operations, onOperationChange}) {
     }
   }
 
-  function handleCardChange(operation, index) {
-    return (newCard) => onOperationChange({...operation, card: newCard});
-  }
-  
-  function handleCheckNumberChange(operation, index) {
-    return (newCheckNumber) => onOperationChange({...operation, checkNumber: newCheckNumber});
-  }
-  
-  function handleOperationDateChange(operation, index) {
-    return (newOperationDate) => onOperationChange({...operation, operationDate: newOperationDate});
-  }
-  
   const columns = [
     {
       id: 'reference',
@@ -109,7 +97,7 @@ function ImportReview({cards, operations, onOperationChange}) {
               id={"card-chooser-" + index}
               operation={operation}
               cards={cards}
-              onChange={handleCardChange(operation, index)}
+              onChange={modifyOperation(operation, 'card')}
             />
           );
         } else {
@@ -128,9 +116,10 @@ function ImportReview({cards, operations, onOperationChange}) {
               defaultValue={operation.checkNumber}
               onKeyPress={(event) => {
                 if(event.key === 'Enter') {
-                  modifyOperation(operation, 'checkNumber')(event.target.value);
+                  event.target.blur();
                 }
               }}
+              onBlur={(event) => modifyOperation(operation, 'checkNumber')(event.target.value)}
             />
           );
         } else {
