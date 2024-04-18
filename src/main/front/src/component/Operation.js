@@ -2,7 +2,7 @@ import React from 'react';
 import { Collapse, IconButton, Table, TableRow, TableCell, TableHead, TableBody } from '@mui/material';
 import { KeyboardArrowDown, KeyboardArrowRight } from '@mui/icons-material';
 import Category from './Category';
-import OperationType from './OperationType';
+import OperationMethod from './OperationMethod';
 import { centsAsEurosString } from '../Cents'
 
 function Operation({operation, existingCategories, refreshExistingCategories}) {
@@ -31,7 +31,7 @@ function Operation({operation, existingCategories, refreshExistingCategories}) {
           </IconButton>
         </TableCell>
         <TableCell>{operation.number}</TableCell>
-        <TableCell><OperationType type={operation.type} /></TableCell>
+        <TableCell><OperationMethod method={operation.method} /></TableCell>
         <TableCell>{operation.label}</TableCell>
         <TableCell>{operation.operationDate}</TableCell>
         <TableCell>{operation.valueDate}</TableCell>

@@ -5,10 +5,10 @@ import CreditCardIcon from '@mui/icons-material/CreditCard';
 import OutputIcon from '@mui/icons-material/Output';
 import SyncAltIcon from '@mui/icons-material/SyncAlt';
 
-function OperationType(props) {
-  const {type} = props;
+function OperationMethod(props) {
+  const {method} = props;
   
-  const types = {
+  const methods = {
     'card': {
       'label': 'Paiement par carte',
       'icon': <CreditCardIcon />
@@ -28,10 +28,10 @@ function OperationType(props) {
   };
 
   return (
-    <Tooltip title={(types[type] && types[type]['label']) || 'Type indéterminé'}>
-      {(types[type] && types[type]['icon']) || <BrokenImageIcon />}
+    <Tooltip title={(methods[method] && methods[method]['label']) || 'Méthode indéterminée'}>
+      {(methods[method] && methods[method]['icon']) || <BrokenImageIcon />}
     </Tooltip>
   );
 }
 
-export default OperationType;
+export default OperationMethod;

@@ -3,7 +3,7 @@ import { TableCell, TableRow, TextField } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers';
 import PaginatedTable from '../widget/PaginatedTable';
 import Reference from './Reference';
-import Type from './Type';
+import Method from './Method';
 import CardChooser from './CardChooser';
 import dayjs from 'dayjs';
 
@@ -41,13 +41,13 @@ function ImportReview({cards, operations, onOperationChange}) {
       }
     },
     {
-      id: 'type',
-      label: 'Type',
+      id: 'method',
+      label: 'Method',
       value: (operation) => {
         return (
-          <Type
-            defaultValue={operation.type}
-            onChange={modifyOperation(operation, 'type')}
+          <Method
+            defaultValue={operation.method}
+            onChange={modifyOperation(operation, 'method')}
           />
         );
       }

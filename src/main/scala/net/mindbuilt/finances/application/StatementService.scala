@@ -51,7 +51,7 @@ class StatementService(
       credit = row.credit - row.debit,
       accountDate = row.date,
       valueDate = row.dateValeur,
-      `type` = matches.groupOption("card").map(_ => classOf[Operation.ByCard])
+      method = matches.groupOption("card").map(_ => classOf[Operation.ByCard])
         .orElse(matches.groupOption("check").map(_ => classOf[Operation.ByCheck]))
         .orElse(matches.groupOption("debit").map(_ => classOf[Operation.ByDebit]))
         .orElse(matches.groupOption("transfer").map(_ => classOf[Operation.ByTransfer])),

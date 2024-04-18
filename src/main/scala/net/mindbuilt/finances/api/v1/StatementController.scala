@@ -1,19 +1,19 @@
 package net.mindbuilt.finances.api.v1
 
+import cats.data.EitherT
 import cats.effect.IO
 import fs2.Pipe
 import fs2.text.{char2string, decodeWithCharset, lines, string2char}
+import io.circe.literal.{JsonStringContext, _}
 import io.circe.{Encoder, Json}
-import io.circe.literal.JsonStringContext
-import net.mindbuilt.finances.api.v1.OperationController.operationEncoder
+import net.mindbuilt.finances.api.v1.OperationController.operationDecoder
 import net.mindbuilt.finances.api.v1.StatementController._
 import net.mindbuilt.finances.application.StatementService
 import net.mindbuilt.finances.business
 import net.mindbuilt.finances.business.{Operation, Statement}
-import org.http4s.circe.CirceEntityEncoder._
+import org.http4s.circe.jsonOf
 import org.http4s.dsl.io._
-import org.http4s.multipart.Multipart
-import org.http4s.{HttpRoutes, ParseFailure, QueryParamDecoder}
+import org.http4s.{DecodeFailure, DecodeResult, EntityDecoder, HttpRoutes, InvalidMessageBodyFailure, ParseFailure, QueryParamDecoder}
 
 import java.nio.charset.Charset
 
@@ -22,16 +22,15 @@ class StatementController(
 ) {
   def apply(): HttpRoutes[IO] = HttpRoutes.of[IO] {
     case req @ POST -> Root :? Iban(account) =>
-      req.decode[Multipart[IO]] {
-        _.parts
-          .find(part => part.name.contains("statement") && part.filename.nonEmpty) match {
-          case None => BadRequest("No statement file provided")
-          case Some(part) =>
-            statementService.parse(account, part.body.through(clean))
-              .toResponse
-        }
+      req.decode[fs2.Stream[IO, String]] { stream =>
+        statementService.parse(account, stream).toResponse
       }
- }
+      
+    case req @ POST -> Root =>
+      req.decode[Seq[Operation]] { operations =>
+        EitherT.rightT[IO, Throwable](operations.length).toResponse
+      }
+  }
 }
 
 object StatementController {
@@ -52,17 +51,32 @@ object StatementController {
       .andThen(string2char[IO])
       .andThen(char2string[IO])
       
-  implicit val parsedRowTypeEncoder: Encoder[Class[_ <: Operation]] = Encoder.instance {
+  implicit val parsedRowMethodEncoder: Encoder[Class[_ <: Operation]] = Encoder.instance {
     case t if t == classOf[Operation.ByCard] => Json.fromString("card")
     case t if t == classOf[Operation.ByCheck] => Json.fromString("check")
     case t if t == classOf[Operation.ByDebit] => Json.fromString("debit")
     case t if t == classOf[Operation.ByTransfer] => Json.fromString("transfer")
   }
   
+  implicit val statementFileDecoder: EntityDecoder[IO, fs2.Stream[IO, String]] =
+    EntityDecoder.multipart(IO.asyncForIO).flatMapR { _
+      .parts
+      .find(part => part.name.contains("statement") && part.filename.nonEmpty)
+      .map(_.body)
+      .map(_.through(clean))
+      .fold[DecodeResult[IO, fs2.Stream[IO, String]]](
+        EitherT.leftT[IO, fs2.Stream[IO, String]](InvalidMessageBodyFailure("No statement file provided"))
+      )(
+        EitherT.pure[IO, DecodeFailure](_)
+      )
+    }
+    
+  implicit val statementOperationsDecoder: EntityDecoder[IO, Seq[Operation]] = jsonOf[IO, Seq[Operation]]
+
   implicit val parsedRowEncoder: Encoder[Statement.ParsedRow] = Encoder.instance { (row: Statement.ParsedRow) =>
     json"""{
       "reference": ${row.reference},
-      "type": ${row.`type`},
+      "method": ${row.method},
       "label": ${row.label},
       "credit": ${row.credit},
       "accountDate": ${row.accountDate},

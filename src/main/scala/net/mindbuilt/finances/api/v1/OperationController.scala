@@ -150,7 +150,7 @@ object OperationController {
           operationDate,
           valueDate,
           accountDate
-          )
+        )
       }
       case "transfer" => for {
         id <- c.downField("id").as[Option[UUID]].map(_.getOrElse(UUID.randomUUID()))

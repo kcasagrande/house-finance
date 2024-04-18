@@ -80,27 +80,27 @@ function Import() {
           ...operation,
           isValidCardOperation() {
             return (
-              this.type === 'card' &&
+              this.method === 'card' &&
               this.card &&
               this.operationDate
             );
           },
           isValidCheckOperation() {
             return (
-              this.type === 'check' &&
+              this.method === 'check' &&
               this.checkNumber &&
               this.operationDate
             );
           },
           isValidDebitOperation() {
             return (
-              this.type === 'debit' &&
+              this.method === 'debit' &&
               this.operationDate
             );
           },
           isValidTransferOperation() {
             return (
-              this.type === 'transfer' &&
+              this.method === 'transfer' &&
               this.operationDate
             );
           },
