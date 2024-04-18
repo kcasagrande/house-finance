@@ -114,6 +114,7 @@ function ImportReview({cards, operations, onOperationChange}) {
           return (
             <TextField
               size="small"
+              label="Check number"
               defaultValue={operation.checkNumber}
               onKeyPress={(event) => {
                 if(event.key === 'Enter') {

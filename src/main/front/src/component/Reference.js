@@ -1,12 +1,19 @@
 import { Tooltip } from '@mui/material';
-import InfoTwoToneIcon from '@mui/icons-material/InfoTwoTone';
+import HideSourceIcon from '@mui/icons-material/HideSource';
+import InfoIcon from '@mui/icons-material/Info';
 
 function Reference({value}) {
-  return (
-    <Tooltip title={value}>
-      <InfoTwoToneIcon />
-    </Tooltip>
-  );
+  if(!!value) {
+    return (
+      <Tooltip title={value}>
+        <InfoIcon />
+      </Tooltip>
+    );
+  } else {
+    return (
+      <HideSourceIcon color="disabled"/>
+    );
+  }
 }
 
 export default Reference;
