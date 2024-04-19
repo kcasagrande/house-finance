@@ -11,7 +11,7 @@ function Import() {
   const [accounts, setAccounts] = useState([]);
   const [cards, setCards] = useState([]);
   const [operations, setOperations] = useState([]);
-  const [account, setAccount] = useState(null);
+  const [account, setAccount] = useState('');
   const [selectedFile, setSelectedFile] = useState('');
   const [ready, setReady] = useState(false);
 
@@ -62,14 +62,6 @@ function Import() {
       process(account, selectedFile);
     }
   }, [account, selectedFile]);
-
-  function changeSelectedFile(file) {
-    setSelectedFile(file);
-  }
-  
-  function changeSelectedAccount(account) {
-    setAccount(account);
-  }
 
   function replaceOperation(newOperation) {
     setOperations(operations.toSpliced(newOperation.key, 1, newOperation));
@@ -134,6 +126,33 @@ function Import() {
   function validOperations() {
     return operations.filter(operation => operation.isValid());
   }
+  
+  function submit() {
+    fetch(
+      configuration.api + "/statements",
+      {
+        method: 'POST',
+        body: new Blob(
+          [JSON.stringify(operations.map(operation => {
+            return {
+              ...operation,
+              account: account.iban
+            }
+          }), null, 2)],
+          {
+            type: 'application/json'
+          }
+        )
+      }
+    )
+      .then(response => {
+        if(response.ok) {
+          return response.json();
+        } else {
+          throw new Error('Response status is ' + response.status);
+        }
+      });
+  }
 
   function Progress({valid, total}) {
     return (
@@ -150,12 +169,11 @@ function Import() {
   return (
     <Stack direction="column" spacing={2} useFlexGap={true}>
       <Stack direction="row" alignItems="flex-end" justifyContent="center" spacing={2} useFlexGap={true}>
-        <AccountChooser accounts={accounts} onChange={changeSelectedAccount} />
-        <FileChooser onChange={changeSelectedFile} />
+        <AccountChooser accounts={accounts} value={account} onChange={setAccount} />
+        <FileChooser onChange={setSelectedFile} />
       </Stack>
       <Stack direction="row" alignItems="center" justifyContent="center" spacing={2} useFlexGap={true}>
-        <Button variant="outlined" disabled={operations.length <= 0 || validOperations().length !== operations.length}>Submit</Button>
-        <Button variant="outlined">Reset</Button>
+        <Button variant="outlined" disabled={operations.length <= 0 || validOperations().length !== operations.length} onClick={submit}>Submit</Button>
       </Stack>
       <Progress valid={validOperations().length} total={operations.length} />
       <ImportReview cards={cards} operations={operations} onOperationChange={replaceOperation} />

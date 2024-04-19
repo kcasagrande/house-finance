@@ -30,7 +30,7 @@ function Operation({operation, existingCategories, refreshExistingCategories}) {
             { open ? <KeyboardArrowDown /> : <KeyboardArrowRight /> }
           </IconButton>
         </TableCell>
-        <TableCell>{operation.number}</TableCell>
+        <TableCell>{operation.checkNumber}</TableCell>
         <TableCell><OperationMethod method={operation.method} /></TableCell>
         <TableCell>{operation.label}</TableCell>
         <TableCell>{operation.operationDate}</TableCell>

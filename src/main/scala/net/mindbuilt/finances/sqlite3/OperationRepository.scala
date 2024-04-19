@@ -277,7 +277,7 @@ object OperationRepository {
       "account_country_code" -> operation.account.countryCode,
       "account_check_digits" -> operation.account.checkDigits,
       "account_bban" -> operation.account.bban,
-      "number" -> operation.number,
+      "number" -> operation.checkNumber,
       "label" -> operation.label,
       "credit" -> operation.credit.value,
       "operation_date" -> ISO_LOCAL_DATE.format(operation.operationDate),

@@ -49,7 +49,7 @@ object Operation {
   case class ByCheck(
     override val id: Operation.Id,
     account: Iban,
-    number: String,
+    checkNumber: String,
     override val label: String,
     override val operationDate: LocalDate,
     override val valueDate: LocalDate,
@@ -63,14 +63,14 @@ object Operation {
     def apply(
       id: Operation.Id,
       account: Iban,
-      number: String,
+      checkNumber: String,
       label: String,
       credit: Cents,
       operationDate: LocalDate,
       valueDate: LocalDate,
       accountDate: LocalDate
     ): Operation.ByCheck =
-      Operation.ByCheck(id, account, number, label, operationDate, valueDate, accountDate, Seq(Breakdown(credit)))
+      Operation.ByCheck(id, account, checkNumber, label, operationDate, valueDate, accountDate, Seq(Breakdown(credit)))
   }
 
   case class ByDebit(

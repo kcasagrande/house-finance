@@ -99,7 +99,7 @@ object OperationController {
       case "check" => for {
         id <- c.downField("id").as[Option[UUID]].map(_.getOrElse(UUID.randomUUID()))
         account <- c.downField("account").as[Iban]
-        number <- c.downField("number").as[String]
+        checkNumber <- c.downField("checkNumber").as[String]
         label <- c.downField("label").as[String]
         credit <- c.downField("credit").as[Cents]
         operationDate <- c.downField("operationDate").as[LocalDate]
@@ -109,7 +109,7 @@ object OperationController {
         Operation.ByCheck(
           id,
           account,
-          number,
+          checkNumber,
           label,
           credit,
           operationDate,
@@ -218,7 +218,7 @@ object OperationController {
                "type": "check",
                "id": ${operation.id.toString},
                "account": ${operation.account.toString},
-               "number": ${operation.number},
+               "checkNumber": ${operation.checkNumber},
                "label": ${operation.label},
                "operationDate": ${operation.operationDate},
                "valueDate": ${operation.valueDate},
