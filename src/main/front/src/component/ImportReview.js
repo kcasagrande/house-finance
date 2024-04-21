@@ -1,10 +1,11 @@
 import './ImportReview.css';
-import { TableCell, TableRow, TextField } from '@mui/material';
+import { TableCell, TableRow } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers';
 import PaginatedTable from '../widget/PaginatedTable';
 import Reference from './Reference';
 import Method from './Method';
 import CardChooser from './CardChooser';
+import CheckNumberInput from './CheckNumberInput';
 import dayjs from 'dayjs';
 
 function ImportReview({cards, operations, onOperationChange}) {
@@ -112,17 +113,7 @@ function ImportReview({cards, operations, onOperationChange}) {
       value: (operation, index) => {
         if(operation.method === 'check') {
           return (
-            <TextField
-              size="small"
-              label="Check number"
-              defaultValue={operation.checkNumber}
-              onKeyPress={(event) => {
-                if(event.key === 'Enter') {
-                  event.target.blur();
-                }
-              }}
-              onBlur={(event) => modifyOperation(operation, 'checkNumber')(event.target.value)}
-            />
+            <CheckNumberInput operation={operation} onChange={modifyOperation(operation, 'checkNumber')} />
           );
         } else {
           return (<></>);
