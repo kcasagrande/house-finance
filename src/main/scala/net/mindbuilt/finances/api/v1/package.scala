@@ -3,8 +3,8 @@ package net.mindbuilt.finances.api
 import cats.data.EitherT
 import cats.effect.IO
 import io.circe.literal.JsonStringContext
-import io.circe.{Decoder, DecodingFailure, Encoder, HCursor}
 import io.circe.syntax.EncoderOps
+import io.circe.{Decoder, DecodingFailure, Encoder, HCursor}
 import net.mindbuilt.finances.Cents
 import net.mindbuilt.finances.business.Iban
 import org.http4s.Response
@@ -15,21 +15,19 @@ package object v1 {
   implicit class ServiceResult[T](serviceResult: EitherT[IO, Throwable, T])
     extends CirceEntityEncoder
   {
-    def toJsonResponse(implicit encoder: Encoder[T]): IO[Response[IO]] =
+    private[this] def toResponse(resultToResponse: T => IO[Response[IO]])(onError: PartialFunction[Throwable, IO[Response[IO]]] = PartialFunction.empty[Throwable, IO[Response[IO]]]): IO[Response[IO]] =
       serviceResult
         .value
         .flatMap {
-          case Left(throwable) => InternalServerError(throwable.getMessage)
-          case Right(result) => Ok(result.asJson)
+          case Left(throwable) => onError.applyOrElse(throwable, (_throwable: Throwable) => InternalServerError(_throwable.getMessage))
+          case Right(result) => resultToResponse(result)
         }
+    
+    def toJsonResponse(onError: PartialFunction[Throwable, IO[Response[IO]]] = PartialFunction.empty[Throwable, IO[Response[IO]]])(implicit encoder: Encoder[T]): IO[Response[IO]] =
+      toResponse((result: T) => Ok(result.asJson))(onError)
         
-    def toEmptyResponse: IO[Response[IO]] =
-      serviceResult
-        .value
-        .flatMap {
-          case Left(throwable) => InternalServerError(throwable.getMessage)
-          case Right(_) => Ok()
-        }
+    def toEmptyResponse(onError: PartialFunction[Throwable, IO[Response[IO]]] = PartialFunction.empty[Throwable, IO[Response[IO]]]): IO[Response[IO]] =
+      toResponse(_ => Ok())(onError)
   }
   
   implicit val centsEncoder: Encoder[Cents] = Encoder.encodeInt.contramap(_.value)

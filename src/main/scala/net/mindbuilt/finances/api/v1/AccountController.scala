@@ -36,7 +36,7 @@ class AccountController(
       
     case GET -> Root / IbanVar(account) / "cards" =>
       accountService.getCardsByAccount(account)
-        .toJsonResponse
+        .toJsonResponse()
   }
 
 }
