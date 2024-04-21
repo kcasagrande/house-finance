@@ -15,12 +15,20 @@ package object v1 {
   implicit class ServiceResult[T](serviceResult: EitherT[IO, Throwable, T])
     extends CirceEntityEncoder
   {
-    def toResponse(implicit encoder: Encoder[T]): IO[Response[IO]] =
+    def toJsonResponse(implicit encoder: Encoder[T]): IO[Response[IO]] =
       serviceResult
         .value
         .flatMap {
           case Left(throwable) => InternalServerError(throwable.getMessage)
           case Right(result) => Ok(result.asJson)
+        }
+        
+    def toEmptyResponse: IO[Response[IO]] =
+      serviceResult
+        .value
+        .flatMap {
+          case Left(throwable) => InternalServerError(throwable.getMessage)
+          case Right(_) => Ok()
         }
   }
   

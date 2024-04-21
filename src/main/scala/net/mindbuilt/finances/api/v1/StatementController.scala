@@ -23,11 +23,11 @@ class StatementController(
   def apply(): HttpRoutes[IO] = HttpRoutes.of[IO] {
     case req @ POST -> Root :? Iban(account) =>
       req.decode[fs2.Stream[IO, String]] { stream =>
-        statementService.parse(account, stream).toResponse
+        statementService.parse(account, stream).toJsonResponse
       }
       
     case req @ POST -> Root =>
-      req.decode[Seq[Operation]](statementService.`import`(_).toResponse)
+      req.decode[Seq[Operation]](statementService.`import`(_).toEmptyResponse)
   }
 }
 
