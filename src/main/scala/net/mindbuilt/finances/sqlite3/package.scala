@@ -6,11 +6,12 @@ import cats.data.EitherT
 import cats.effect.IO
 import cats.effect.kernel.Resource
 import net.mindbuilt.finances.business.{Bank, Bic, Holder, Iban}
+import org.sqlite.SQLiteConfig
 
-import java.sql.{Connection, DriverManager}
+import java.sql.Connection
 import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, YearMonth}
 import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
+import java.time.{LocalDate, YearMonth}
 import java.util.UUID
 import scala.language.implicitConversions
 import scala.util._
@@ -35,13 +36,24 @@ package object sqlite3
   implicit def liftEitherT[A, B](effect: IO[Either[A, B]]): EitherT[IO, A, B] = EitherT(effect)
   implicit def unliftEitherT[A, B](eitherT: EitherT[IO, A, B]): IO[Either[A, B]] = eitherT.value
   
-  def withConnection[T](run: Connection => EitherT[IO, Throwable, T])(implicit database: EitherT[IO, Throwable, Database]): EitherT[IO, Throwable, T] =
+  def withConnection[T](run: Connection => EitherT[IO, Throwable, T])(implicit database: EitherT[IO, Throwable, Database]): EitherT[IO, Throwable, T] = {
+    val config = new SQLiteConfig()
+    config.enableLoadExtension(true)
     Resource.make(
       database
         .map(_.url)
-        .map(DriverManager.getConnection)
-    )(connection => EitherT.liftF(IO.delay(connection.close())))
+        .map(config.createConnection)
+        .flatMap { implicit connection =>
+          EitherT(IO.delay(SQL("SELECT load_extension('/home/orion/finances/uuid')").executeQuery().asTry[Unit](RowParser.successful.single.map(_ => ())).toEither))
+            .map(_ => connection)
+        }
+        .map { connection =>
+          connection.setAutoCommit(false)
+          connection
+        }
+  )(connection => EitherT.liftF(IO.delay(connection.close())))
       .use(run)
+  }
   
   def executeQueryWithEffect[T](query: String, namedParameters: NamedParameter*)(parser: ResultSetParser[T])(implicit connection: Connection): EitherT[IO, Throwable, T] =
     EitherT(IO.delay(SQL(query).on(namedParameters:_*).executeQuery().asTry[T](parser).toEither))
@@ -104,5 +116,16 @@ package object sqlite3
     
   implicit class ExtendedRowParser[A](rowParser: RowParser[A]) {
     def set: ResultSetParser[Set[A]] = rowParser.*.map(_.toSet)
+  }
+  
+  implicit class ExtendedEitherT[T](eitherT: EitherT[IO, Throwable, T]) {
+    def orRollback(implicit connection: Connection): EitherT[IO, Throwable, T] =
+      eitherT
+        .semiflatTap { _ =>
+          IO(connection.commit())
+        }
+        .leftSemiflatTap { _ =>
+          IO(connection.rollback())
+        }
   }
 }

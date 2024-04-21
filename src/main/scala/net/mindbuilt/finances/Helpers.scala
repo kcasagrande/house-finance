@@ -1,9 +1,10 @@
 package net.mindbuilt.finances
 
-import cats.{Applicative, Monad}
 import cats.data.EitherT
+import cats.{Applicative, Monad}
 
 import scala.annotation.nowarn
+import scala.language.implicitConversions
 import scala.util.Try
 import scala.util.matching.Regex
 
@@ -57,5 +58,4 @@ object Helpers {
     def groupEither(id: String): Either[Throwable, String] = groupTry(id).toEither
     def groupEitherT[F[_] : Applicative](id: String): EitherT[F, Throwable, String] = EitherT.fromEither[F](groupEither(id))
   }
-
 }

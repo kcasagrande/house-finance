@@ -130,6 +130,7 @@ class CardRepository(implicit val database: EitherT[IO, Throwable, Database])
           |)""".stripMargin,
         card:_*
       )
+        .orRollback
     }
 }
 

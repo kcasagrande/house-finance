@@ -12,6 +12,7 @@ import net.mindbuilt.finances.{IntToCents, business => port}
 import java.sql.Connection
 import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
 import scala.language.implicitConversions
+import net.mindbuilt.finances.Helpers._
 
 class OperationRepository(implicit val database: EitherT[IO, Throwable, Database])
   extends port.OperationRepository
@@ -138,12 +139,27 @@ class OperationRepository(implicit val database: EitherT[IO, Throwable, Database
 
   override def save(operation: Operation): EitherT[IO, Throwable, Unit] = {
     withConnection { implicit connection: Connection =>
-      operation match {
+      (operation match {
         case cardOperation: Operation.ByCard => saveCardOperation(cardOperation)
         case checkOperation: Operation.ByCheck => saveCheckOperation(checkOperation)
         case debitOperation: Operation.ByDebit => saveDebitOperation(debitOperation)
         case transferOperation: Operation.ByTransfer => saveTransferOperation(transferOperation)
-      }
+      })
+        .orRollback
+    }
+  }
+
+  override def save(operations: Seq[Operation]): EitherT[IO, Throwable, Unit] = {
+    withConnection { implicit connection: Connection =>
+        operations.map {
+          case cardOperation: Operation.ByCard => saveCardOperation(cardOperation)
+          case checkOperation: Operation.ByCheck => saveCheckOperation(checkOperation)
+          case debitOperation: Operation.ByDebit => saveDebitOperation(debitOperation)
+          case transferOperation: Operation.ByTransfer => saveTransferOperation(transferOperation)
+        }
+          .traverse
+          .map(_.reduce((_, _) => ()))
+          .orRollback
     }
   }
 

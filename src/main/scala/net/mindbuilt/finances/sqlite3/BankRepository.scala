@@ -43,6 +43,7 @@ class BankRepository(implicit database: EitherT[IO, Throwable, Database])
           |VALUES ({bic}, {designation})""".stripMargin,
         bank: _*
       )
+        .orRollback
     }
   }
 }

@@ -4,7 +4,7 @@ import cats.data.EitherT
 import cats.effect.IO
 import fs2.Pipe
 import fs2.text.{char2string, decodeWithCharset, lines, string2char}
-import io.circe.literal.{JsonStringContext, _}
+import io.circe.literal.JsonStringContext
 import io.circe.{Encoder, Json}
 import net.mindbuilt.finances.api.v1.OperationController.operationDecoder
 import net.mindbuilt.finances.api.v1.StatementController._
@@ -27,9 +27,7 @@ class StatementController(
       }
       
     case req @ POST -> Root =>
-      req.decode[Seq[Operation]] { operations =>
-        EitherT.rightT[IO, Throwable](operations.length).toResponse
-      }
+      req.decode[Seq[Operation]](statementService.`import`(_).toResponse)
   }
 }
 

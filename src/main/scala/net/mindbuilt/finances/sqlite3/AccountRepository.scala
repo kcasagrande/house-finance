@@ -170,15 +170,18 @@ class AccountRepository(implicit val database: EitherT[IO, Throwable, Database])
 
   override def save(account: Account): EitherT[IO, Throwable, Unit] = {
     withConnection { implicit connection: Connection =>
-      for {
-        _ <- saveAccount(account)
-        _ <- account.holder match {
-          case singleHolder: Holder.Single => saveSingleAccountHolder(account.iban, singleHolder)
-          case multipleHolder: Holder.Multiple => saveMultipleAccountHolder(account.iban, multipleHolder)
+      (
+        for {
+          _ <- saveAccount(account)
+          _ <- account.holder match {
+            case singleHolder: Holder.Single => saveSingleAccountHolder(account.iban, singleHolder)
+            case multipleHolder: Holder.Multiple => saveMultipleAccountHolder(account.iban, multipleHolder)
+          }
+        } yield {
+          ()
         }
-      } yield {
-        ()
-      }
+      )
+        .orRollback
     }
   }
 

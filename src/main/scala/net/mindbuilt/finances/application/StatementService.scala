@@ -9,7 +9,7 @@ import fs2.io.file.{Files, Path}
 import fs2.text.lines
 import net.mindbuilt.finances.Helpers._
 import net.mindbuilt.finances.application.StatementService._
-import net.mindbuilt.finances.business.{Card, CardRepository, Iban, Operation, Statement}
+import net.mindbuilt.finances.business.{Card, CardRepository, Iban, Operation, OperationRepository, Statement}
 import net.mindbuilt.finances.{Cents, IntToCents}
 
 import java.nio.charset.Charset
@@ -24,7 +24,8 @@ import scala.util.matching.Regex
 import scala.util.{Failure, Success, Try}
 
 class StatementService(
-  cardRepository: CardRepository
+  cardRepository: CardRepository,
+  operationRepository: OperationRepository
 ) {
   private[this] val rulesDirectory = "src/main/resources/rules.d/"
   private[this] def loadRulesFromFile(fileName: String): EitherT[IO, Throwable, List[Regex]] =
@@ -88,6 +89,9 @@ class StatementService(
     } yield {
       parsedRows
     }
+
+  def `import`(operations: Seq[Operation]): EitherT[IO, Throwable, Unit] =
+    operationRepository.save(operations)
 }
 
 object StatementService {

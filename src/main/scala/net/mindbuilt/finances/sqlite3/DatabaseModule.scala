@@ -8,6 +8,6 @@ trait DatabaseModule {
   def configuration: EitherT[IO, Throwable, Configuration]
   lazy val database: EitherT[IO, Throwable, Database] = configuration
     .map(_.database)
-    .map("jdbc:sqlite:file:" + _ + "?mode=ro")
+    .map("jdbc:sqlite:file:" + _)
     .map(Database)
 }
