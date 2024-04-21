@@ -1,7 +1,8 @@
 import configuration from '../Configuration';
 import { useEffect, useState } from 'react';
-import { Button, LinearProgress, Stack, Typography } from '@mui/material';
+import { Alert, Button, IconButton, LinearProgress, Snackbar, Stack, Typography } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CloseIcon from '@mui/icons-material/Close';
 import DoNotDisturbOnIcon from '@mui/icons-material/DoNotDisturbOn';
 import AccountChooser from '../component/AccountChooser';
 import FileChooser from '../component/FileChooser';
@@ -13,10 +14,11 @@ function Import() {
   const [operations, setOperations] = useState([]);
   const [account, setAccount] = useState('');
   const [selectedFile, setSelectedFile] = useState('');
-  const [ready, setReady] = useState(false);
+  const [initialized, setInitialized] = useState(false);
+  const [notificationContent, setNotificationContent] = useState(null);
 
   useEffect(() => {
-    if(!ready) {
+    if(!initialized) {
       fetch(configuration.api + "/accounts")
         .then(response => {
           if(response.ok) {
@@ -39,9 +41,9 @@ function Import() {
           });
         })
         .then(setAccounts)
-        .then(() => setReady(true));
+        .then(() => setInitialized(true));
     }
-  }, [ready]);
+  }, [initialized]);
   
   useEffect(() => {
     if(!!account) {
@@ -147,11 +149,22 @@ function Import() {
     )
       .then(response => {
         if(response.ok) {
-          return response.json();
+          notify("Operations saved!", {severity: 'success'});
         } else {
-          throw new Error('Response status is ' + response.status);
+          response.text()
+            .then(error =>
+              notify("Oops! Couldn't save the operations, the following error was emitted: " + error, {severity: 'error'})
+            );
         }
       });
+  }
+
+  function notify(text, alertProps = {}) {
+    setNotificationContent(<Alert variant="filled" {...alertProps} onClose={dismissNotification}>{text}</Alert>);
+  }
+  
+  function dismissNotification() {
+    setNotificationContent(null);
   }
 
   function Progress({valid, total}) {
@@ -167,17 +180,27 @@ function Import() {
   }
 
   return (
-    <Stack direction="column" spacing={2} useFlexGap={true}>
-      <Stack direction="row" alignItems="flex-end" justifyContent="center" spacing={2} useFlexGap={true}>
-        <AccountChooser accounts={accounts} value={account} onChange={setAccount} />
-        <FileChooser onChange={setSelectedFile} />
+    <>
+      <Stack direction="column" spacing={2} useFlexGap={true}>
+        <Stack direction="row" alignItems="flex-end" justifyContent="center" spacing={2} useFlexGap={true}>
+          <AccountChooser accounts={accounts} value={account} onChange={setAccount} />
+          <FileChooser onChange={setSelectedFile} />
+        </Stack>
+        <Stack direction="row" alignItems="center" justifyContent="center" spacing={2} useFlexGap={true}>
+          <Button variant="outlined" disabled={operations.length <= 0 || validOperations().length !== operations.length} onClick={submit}>Submit</Button>
+        </Stack>
+        <Progress valid={validOperations().length} total={operations.length} />
+        <ImportReview cards={cards} operations={operations} onOperationChange={replaceOperation} />
       </Stack>
-      <Stack direction="row" alignItems="center" justifyContent="center" spacing={2} useFlexGap={true}>
-        <Button variant="outlined" disabled={operations.length <= 0 || validOperations().length !== operations.length} onClick={submit}>Submit</Button>
-      </Stack>
-      <Progress valid={validOperations().length} total={operations.length} />
-      <ImportReview cards={cards} operations={operations} onOperationChange={replaceOperation} />
-    </Stack>
+      <Snackbar
+        anchorOrigin={{vertical: 'bottom', horizontal: 'center'}}
+        open={!!notificationContent}
+        autoHideDuration={5000}
+        onClose={dismissNotification}
+      >
+        {notificationContent}
+      </Snackbar>
+    </>
   );
 }
 
