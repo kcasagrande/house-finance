@@ -10,6 +10,7 @@ import net.mindbuilt.finances.business.Iban
 import org.http4s.Response
 import org.http4s.circe.CirceEntityEncoder
 import org.http4s.dsl.io._
+import org.sqlite.SQLiteException
 
 package object v1 {
   implicit class ServiceResult[T](serviceResult: EitherT[IO, Throwable, T])
@@ -53,4 +54,16 @@ package object v1 {
       .flatMap(_.toEither)
       .left.map(DecodingFailure.fromThrowable(_, c.history))
   
+  object SQLiteException {
+    def unapply(sqliteException: SQLiteException): Option[(Int, String)] =
+      Some(sqliteException.getErrorCode, sqliteException.getMessage)
+  }
+  
+  val sqliteExceptionToResponse: PartialFunction[Throwable, IO[Response[IO]]] = {
+    case sqliteException: SQLiteException => sqliteException.getErrorCode match {
+      case SQLITE_CONSTRAINT_UNIQUE => Conflict(sqliteException.getMessage)
+    }
+  }
+  
+  val SQLITE_CONSTRAINT_UNIQUE = 19
 }
