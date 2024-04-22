@@ -4,7 +4,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import './index.css';
 import App from './App';
 import Import from './tab/Import';
-import Operations from './tab/Operations';
+import Details from './tab/Details';
 import reportWebVitals from './reportWebVitals';
 
 const router = createBrowserRouter([
@@ -18,7 +18,7 @@ const router = createBrowserRouter([
       },
       {
         path: "details",
-        element: <Operations />
+        element: <Details />
       }
     ]
   }

@@ -1,9 +1,10 @@
 import Operation from '../component/Operation';
-import { Box, LinearProgress, Paper, TableContainer, Table, TableRow, TableCell, TableHead, TableBody } from '@mui/material';
+import { Box, LinearProgress, Paper, Stack, TableContainer, Table, TableRow, TableCell, TableHead, TableBody } from '@mui/material';
 import { useEffect, useState } from 'react';
 import configuration from '../Configuration';
+import SearchOperations from '../component/SearchOperations';
 
-function Operations() {
+function Details() {
   const [initialized, setInitialized] = useState(false);
   const [existingCategories, setExistingCategories] = useState([]);
   const [operations, setOperations] = useState([]);
@@ -16,7 +17,7 @@ function Operations() {
       ])
         .finally(() => setInitialized(true));
     }
-  }, []);
+  }, [initialized]);
   
   function refreshOperations() {
     return fetch(configuration.api + "/operations?from=2023-01-01&to=2023-12-31")
@@ -62,35 +63,38 @@ function Operations() {
   }
     
   return (
-    <TableContainer component={Paper} id="operations">
-      <Table aria-label="collapsible table">
-        <TableHead>
-          <TableRow>
-            <TableCell></TableCell>
-            <TableCell>Référence</TableCell>
-            <TableCell>Type</TableCell>
-            <TableCell>Libellé</TableCell>
-            <TableCell>Date d'opération</TableCell>
-            <TableCell>Date de valeur</TableCell>
-            <TableCell>Date comptable</TableCell>
-            <TableCell>Montant</TableCell>
-            <TableCell>Carte</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          <LoadingAnimation initialized={initialized} />
-          {operations.map(operation =>
-            <Operation
-              key={'operation-' + operation.id}
-              operation={operation}
-              existingCategories={existingCategories}
-              refreshExistingCategories={refreshExistingCategories}
-            />
-          )}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <Stack direction="column">
+      <SearchOperations />
+      <TableContainer component={Paper} id="operations">
+        <Table aria-label="collapsible table">
+          <TableHead>
+            <TableRow>
+              <TableCell></TableCell>
+              <TableCell>Référence</TableCell>
+              <TableCell>Type</TableCell>
+              <TableCell>Libellé</TableCell>
+              <TableCell>Date d'opération</TableCell>
+              <TableCell>Date de valeur</TableCell>
+              <TableCell>Date comptable</TableCell>
+              <TableCell>Montant</TableCell>
+              <TableCell>Carte</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <LoadingAnimation initialized={initialized} />
+            {operations.map(operation =>
+              <Operation
+                key={'operation-' + operation.id}
+                operation={operation}
+                existingCategories={existingCategories}
+                refreshExistingCategories={refreshExistingCategories}
+              />
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Stack>
   );
 }
 
-export default Operations;
+export default Details;
