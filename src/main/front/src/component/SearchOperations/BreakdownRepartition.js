@@ -18,7 +18,6 @@ function BreakdownRepartition() {
   const [value, setValue] = useState([0, choices.length - 1]);
   
   const [anchor, setAnchor] = useState(null);
-  const [open, setOpen] = useState(false);
   const [noBreakdown, setNoBreakdown] = useState('include');
   
   function openMenu(event) {
