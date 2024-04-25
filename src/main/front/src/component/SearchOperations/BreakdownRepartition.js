@@ -1,8 +1,6 @@
-import { Box, Button, Card, CardContent, InputLabel, Popover, Slider, Stack, ToggleButton, ToggleButtonGroup, Tooltip } from '@mui/material';
+import { Box, Button, Card, CardContent, Popover, Slider, Stack } from '@mui/material';
 import CallSplitIcon from '@mui/icons-material/CallSplit';
-import ExcludeIcon from '@mui/icons-material/HighlightOff';
-import IncludeIcon from '@mui/icons-material/CheckCircleOutline';
-import ExclusiveIcon from '@mui/icons-material/ErrorOutline';
+import NoValueChooser from './NoValueChooser';
 import { useState } from 'react';
 
 function BreakdownRepartition() {
@@ -32,12 +30,6 @@ function BreakdownRepartition() {
     setValue(newValue);
   }
   
-  function handleNoBreakdownChange(event, newValue) {
-    if(!!newValue) {
-      setNoBreakdown(newValue);
-    }
-  }
-  
   return (
     <>
       <Button size="small" variant="outlined" onClick={openMenu}><CallSplitIcon sx={{ transform: 'rotate(90deg)' }} />Breakdown</Button>
@@ -57,21 +49,12 @@ function BreakdownRepartition() {
         <Card>
           <CardContent>
             <Stack direction="column" alignItems="center">
-              <Stack direction="row" alignItems="center" justifyContent="end" spacing={1}>
-                <InputLabel id="no-breakdown-label">Operations not broken down</InputLabel>
-                <ToggleButtonGroup
-                  id="no-breakdown"
-                  labelId="no-breakdown-label"
-                  exclusive
-                  size="small"
-                  value={noBreakdown}
-                  onChange={handleNoBreakdownChange}
-                >
-                  <Tooltip title="Exclude"><ToggleButton value="exclude"><ExcludeIcon size="small" /></ToggleButton></Tooltip>
-                  <Tooltip title="Include"><ToggleButton value="include"><IncludeIcon size="small" /></ToggleButton></Tooltip>
-                  <Tooltip title="Only"><ToggleButton value="exclusive"><ExclusiveIcon size="small" /></ToggleButton></Tooltip>
-                </ToggleButtonGroup>
-              </Stack>
+              <NoValueChooser
+                id="no-breakdown"
+                label="Operations not broken down"
+                value={noBreakdown}
+                onChange={setNoBreakdown}
+              />
               <Box sx={{ width: 200 }}>
                 <Slider
                   id="breakdown"

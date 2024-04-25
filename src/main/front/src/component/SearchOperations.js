@@ -2,6 +2,7 @@ import { FormControl, InputLabel, MenuItem, Select, Stack, TextField } from '@mu
 import { DatePicker } from '@mui/x-date-pickers';
 import CardChooser from './CardChooser';
 import BreakdownRepartition from './SearchOperations/BreakdownRepartition';
+import Categories from './SearchOperations/Categories';
 import Method from './Method';
 
 function SearchOperations() {
@@ -15,6 +16,7 @@ function SearchOperations() {
           <MenuItem>Péage</MenuItem>
         </Select>
       </FormControl>
+      <Categories />
       <BreakdownRepartition />
       <Method onChange={() => null} />
       <TextField label="Search label" size="small" />
