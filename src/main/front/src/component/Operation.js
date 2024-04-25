@@ -61,6 +61,7 @@ function Operation({operation, existingCategories, refreshExistingCategories}) {
                         account={operation.account}
                         existingCategories={existingCategories}
                         refreshExistingCategories={refreshExistingCategories}
+                        operation={operation}
                       />
                     )
                 }

@@ -2,8 +2,11 @@ import React from 'react';
 import { Autocomplete, Avatar, Chip, IconButton, Stack, TableRow, TableCell, TextField, Tooltip } from '@mui/material';
 import { AddCircle, Cancel, Flaky, PendingOutlined } from '@mui/icons-material';
 import Breakdown from './Breakdown';
+import CategoryName from './CategoryName';
+import NewCategoryModal from './NewCategoryModal';
 import SaveStatusIndicator from './SaveStatusIndicator';
 import {centsAsEurosString} from '../Cents';
+import configuration from '../Configuration';
 
 function Unsupplied(props) {
   const { credit, account } = props;
@@ -79,10 +82,31 @@ function ActionButton(props) {
   );
 }
 
-function CategoryChooser({ anchor, existingCategories, refreshExistingCategories, category }) {
+function CategoryChooser({ account, anchor, existingCategories, refreshExistingCategories, category, operation }) {
   const [value, setValue] = React.useState(category);
   const [isOpen, setOpen] = React.useState(false);
   const [saveState, setSaveState] = React.useState(undefined);
+  const [openNewCategoryModal, setOpenNewCategoryModal] = React.useState(false);
+  const [holders, setHolders] = React.useState([]);
+  
+  React.useEffect(() => {
+    if(!!account) {
+      const url = configuration.api + "/accounts/" + account + "/holders";
+      fetch(url)
+        .then(response => {
+          if(response.ok) {
+            return response.json();
+          } else {
+            throw new Error('Response status to fetching "' + url + '" is ' + response.status);
+          }
+        })
+        .then(value => {
+          console.log(JSON.stringify(value, null, 2));
+          return value;
+        })
+        .then(setHolders);
+    }
+  }, [account]);
   
   function save(setSaveState) {
     setSaveState('pending');
@@ -99,6 +123,8 @@ function CategoryChooser({ anchor, existingCategories, refreshExistingCategories
   
   return (
     <Stack direction="row" alignItems="center" spacing={2}>
+      <NewCategoryModal open={openNewCategoryModal} onClose={() => setOpenNewCategoryModal(false)} operation={operation} holders={holders} />
+      <IconButton onClick={() => setOpenNewCategoryModal(true)}><AddCircle fontSize="large" /></IconButton>
       <Autocomplete
         freeSolo
         autoComplete
@@ -124,7 +150,7 @@ function CategoryChooser({ anchor, existingCategories, refreshExistingCategories
   );
 }
 
-function Uncategorized({ supplies, account, existingCategories, refreshExistingCategories }) {
+function Uncategorized({ supplies, account, existingCategories, refreshExistingCategories, operation }) {
   const [ anchor, setAnchor ] = React.useState(null);
   
   function handleClick(event) {
@@ -140,9 +166,11 @@ function Uncategorized({ supplies, account, existingCategories, refreshExistingC
     <TableRow>
       <TableCell sx={{ color: "gray", fontStyle: "italic" }}>
         <CategoryChooser
+          account={account}
           anchor={anchor}
           existingCategories={existingCategories}
           refreshExistingCategories={refreshExistingCategories}
+          operation={operation}
         />
       </TableCell>
       <TableCell>
@@ -155,17 +183,17 @@ function Uncategorized({ supplies, account, existingCategories, refreshExistingC
   );
 }
 
-function Category({ name, supplies, account, existingCategories, refreshExistingCategories }) {
+function Category({ name, supplies, account, existingCategories, refreshExistingCategories, operation }) {
   if(name.length > 0) {
     return (
       <TableRow>
-        <TableCell sx={ name.length > 0 ? {} : { color: "gray", fontStyle: "italic" } }>{name.length > 0 ? name : 'Non catégorisé'}</TableCell>
+        <TableCell sx={ name.length > 0 ? {} : { color: "gray", fontStyle: "italic" } }><CategoryName value={name || 'Non catégorisé'} /></TableCell>
         <TableCell>{centsAsEurosString(supplies.map(supply => supply.credit).reduce((sum, credit) => sum + credit, 0)) + ' €'}</TableCell>
         <TableCell>{supplies.sort((supplyA, supplyB) => supplyA.supplier.localeCompare(supplyB.supplier)).map(supply => <Supply key={'supply-' + supply.supplier} supplier={supply.supplier} credit={supply.credit} account={account} />)}</TableCell>
       </TableRow>
     );
   } else {
-    return <Uncategorized supplies={supplies} account={account} existingCategories={existingCategories} refreshExistingCategories={refreshExistingCategories} />
+    return <Uncategorized supplies={supplies} account={account} existingCategories={existingCategories} refreshExistingCategories={refreshExistingCategories} operation={operation} />
   }
 }
 
