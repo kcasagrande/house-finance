@@ -2,7 +2,7 @@ import { Alert, Autocomplete, Button, Dialog, DialogActions, DialogContent, Dial
 import { useState } from 'react';
 import amount from '../amount';
 import AddIcon from '@mui/icons-material/Add';
-import BreakdownIcon from './icon/BreakdownIcon';
+import { BreakdownIcon } from '../icons';
 import CancelIcon from '@mui/icons-material/Cancel';
 import ContrastIcon from '@mui/icons-material/Contrast';
 import FlashOnIcon from '@mui/icons-material/FlashOn';
