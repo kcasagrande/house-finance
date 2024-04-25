@@ -1,5 +1,5 @@
 import { Box, Button, Card, CardContent, Popover, Slider, Stack } from '@mui/material';
-import CallSplitIcon from '@mui/icons-material/CallSplit';
+import { BreakdownIcon } from '../../icons';
 import NoValueChooser from './NoValueChooser';
 import { useState } from 'react';
 
@@ -32,7 +32,7 @@ function BreakdownRepartition() {
   
   return (
     <>
-      <Button size="small" variant="outlined" onClick={openMenu}><CallSplitIcon sx={{ transform: 'rotate(90deg)' }} />Breakdown</Button>
+      <Button variant="outlined" onClick={openMenu} startIcon={<BreakdownIcon />}>Breakdown</Button>
       <Popover
         onClose={closeMenu}
         open={!!anchor}
