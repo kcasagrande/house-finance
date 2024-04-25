@@ -200,7 +200,7 @@ object OperationController {
   private val cardOperationEncoder: Encoder[Operation.ByCard] = Encoder.instance {
     (operation: Operation.ByCard) =>
       json"""{
-               "type": "card",
+               "method": "card",
                "id": ${operation.id.toString},
                "card": ${operation.card},
                "reference": ${operation.reference},
@@ -215,7 +215,7 @@ object OperationController {
   private val checkOperationEncoder: Encoder[Operation.ByCheck] = Encoder.instance {
     (operation: Operation.ByCheck) =>
       json"""{
-               "type": "check",
+               "method": "check",
                "id": ${operation.id.toString},
                "account": ${operation.account.toString},
                "checkNumber": ${operation.checkNumber},
@@ -230,7 +230,7 @@ object OperationController {
   private val debitOperationEncoder: Encoder[Operation.ByDebit] = Encoder.instance {
     (operation: Operation.ByDebit) =>
       json"""{
-               "type": "debit",
+               "method": "debit",
                "id": ${operation.id.toString},
                "account": ${operation.account.toString},
                "reference": ${operation.reference},
@@ -245,7 +245,7 @@ object OperationController {
   private val transferOperationEncoder: Encoder[Operation.ByTransfer] = Encoder.instance {
     (operation: Operation.ByTransfer) =>
       json"""{
-               "type": "transfer",
+               "method": "transfer",
                "id": ${operation.id.toString},
                "account": ${operation.account.toString},
                "reference": ${operation.reference},
