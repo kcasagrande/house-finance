@@ -44,25 +44,25 @@ package object sqlite3
         .map(_.url)
         .map(config.createConnection)
         .flatMap { implicit connection =>
-          EitherT(IO.delay(SQL("SELECT load_extension('/home/orion/finances/uuid')").executeQuery().asTry[Unit](RowParser.successful.single.map(_ => ())).toEither))
+          EitherT(IO.blocking(SQL("SELECT load_extension('/home/orion/finances/uuid')").executeQuery().asTry[Unit](RowParser.successful.single.map(_ => ())).toEither))
             .map(_ => connection)
         }
         .map { connection =>
           connection.setAutoCommit(false)
           connection
         }
-  )(connection => EitherT.liftF(IO.delay(connection.close())))
+  )(connection => EitherT.liftF(IO.blocking(connection.close())))
       .use(run)
   }
   
   def executeQueryWithEffect[T](query: String, namedParameters: NamedParameter*)(parser: ResultSetParser[T])(implicit connection: Connection): EitherT[IO, Throwable, T] =
-    EitherT(IO.delay(SQL(query).on(namedParameters:_*).executeQuery().asTry[T](parser).toEither))
+    EitherT(IO.blocking(SQL(query).on(namedParameters:_*).executeQuery().asTry[T](parser).toEither))
 
   def executeWithEffect(sql: String, namedParameters: NamedParameter*)(implicit connection: Connection): EitherT[IO, Throwable, Unit] =
-    EitherT(IO.delay(Try { SQL(sql).on(namedParameters: _*).execute() }.toEither.map(_ => ())))
+    EitherT(IO.blocking(Try { SQL(sql).on(namedParameters: _*).execute() }.toEither.map(_ => ())))
     
   def executeBatchWithEffect(sql: String, firstNamedParameters: Seq[NamedParameter], otherNamedParameters: Seq[NamedParameter]*)(implicit connection: Connection): EitherT[IO, Throwable, Array[Int]] =
-    EitherT(IO.delay(Try { BatchSql(sql, firstNamedParameters, otherNamedParameters:_*).execute() }.toEither))
+    EitherT(IO.blocking(Try { BatchSql(sql, firstNamedParameters, otherNamedParameters:_*).execute() }.toEither))
 
   def uuid(columnName: String): RowParser[UUID] = str(columnName).map(UUID.fromString)
   

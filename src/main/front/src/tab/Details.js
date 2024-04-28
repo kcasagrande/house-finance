@@ -19,6 +19,11 @@ function Details() {
     }
   }, [initialized]);
   
+  function replaceOperation(operation) {
+    console.log('Operation replacement not implemented yet.');
+    setOperations(operations);
+  }
+  
   function refreshOperations() {
     return fetch(configuration.api + "/operations?from=2023-01-01&to=2023-12-31")
       .then(response => {
@@ -87,7 +92,7 @@ function Details() {
                 key={'operation-' + operation.id}
                 operation={operation}
                 existingCategories={existingCategories}
-                refreshExistingCategories={refreshExistingCategories}
+                onChange={replaceOperation}
               />
             )}
           </TableBody>
