@@ -41,10 +41,10 @@ function Operation({operation, existingCategories, onChange}) {
         <TableCell>{operation.card}</TableCell>
       </TableRow>
       <TableRow>
-        <TableCell></TableCell>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0}}></TableCell>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0}} colSpan="8">
           <Collapse in={open} timeout="auto" unmountOnExit>
-            <OperationBreakdownTable operation={operation} />
+            <OperationBreakdownTable operation={operation} existingCategories={existingCategories} />
           </Collapse>
         </TableCell>
       </TableRow>

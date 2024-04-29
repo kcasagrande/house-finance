@@ -3,7 +3,6 @@ import { Autocomplete, Avatar, Chip, IconButton, Stack, TableRow, TableCell, Tex
 import { AddCircle, Cancel, Flaky, PendingOutlined } from '@mui/icons-material';
 import Breakdown from './Breakdown';
 import CategoryName from './CategoryName';
-import NewCategoryModal from './NewCategoryModal';
 import SaveStatusIndicator from './SaveStatusIndicator';
 import {centsAsEurosString} from '../Cents';
 import configuration from '../Configuration';
@@ -123,8 +122,6 @@ function CategoryChooser({ account, anchor, existingCategories, refreshExistingC
   
   return (
     <Stack direction="row" alignItems="center" spacing={2}>
-      <NewCategoryModal open={openNewCategoryModal} onClose={() => setOpenNewCategoryModal(false)} operation={operation} holders={holders} />
-      <IconButton onClick={() => setOpenNewCategoryModal(true)}><AddCircle fontSize="large" /></IconButton>
       <Autocomplete
         freeSolo
         autoComplete

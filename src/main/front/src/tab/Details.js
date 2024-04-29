@@ -71,7 +71,7 @@ function Details() {
     <Stack direction="column">
       <SearchOperations callback={setOperations} />
       <TableContainer component={Paper} id="operations">
-        <Table aria-label="collapsible table">
+        <Table aria-label="collapsible table" size="small">
           <TableHead>
             <TableRow>
               <TableCell></TableCell>

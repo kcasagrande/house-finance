@@ -1,18 +1,23 @@
-import { Alert, Autocomplete, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, IconButton, SpeedDial, SpeedDialAction, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Autocomplete, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, IconButton, InputLabel, MenuItem, Select, Stack, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
 import amount from '../amount';
 import AddIcon from '@mui/icons-material/Add';
 import { BreakdownIcon } from '../icons';
 import CancelIcon from '@mui/icons-material/Cancel';
+import CloseIcon from '@mui/icons-material/Close';
 import ContrastIcon from '@mui/icons-material/Contrast';
-import FlashOnIcon from '@mui/icons-material/FlashOn';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import SendIcon from '@mui/icons-material/Send';
 import AmountField from './AmountField';
+import CategoryName from './CategoryName';
+import Holder from './Holder';
 
-function NewCategoryModal({open, onClose, operation, holders = []}) {
+function NewBreakdownModal({open, onClose, operation, categories}) {
   const [categorizedAmount, setCategorizedAmount] = useState(getOperationCredit());
   const [category, setCategory] = useState('');
+  const [supplier, setSupplier] = useState(null);
+  const holders = [{id: '6c34fb5c-a24d-4f93-9666-ceae62cc1a00', name: 'Orion'}, {id: 2, name: 'B'}, {id: 3, name: 'C'}];
 
   function handleAmountChange(value) {
     setCategorizedAmount(value);
@@ -20,6 +25,10 @@ function NewCategoryModal({open, onClose, operation, holders = []}) {
 
   function handleCategoryChange(event, value) {
     setCategory(value);
+  }
+
+  function handleSupplierChange(value) {
+    setSupplier(value);
   }
 
   function handleClose(event) {
@@ -36,20 +45,53 @@ function NewCategoryModal({open, onClose, operation, holders = []}) {
       Math.abs(operationCredit - amount) <= Math.abs(operationCredit)
     );
   }
+  
+  function modifyOperation() {
+    const uncategorized = operation.breakdown.find((entry) => !entry.category);
+    return {
+      ...operation,
+      breakdown: [
+        {...(operation.breakdown.filter((entry) => (!!entry.category || !!entry.supplier)))},
+        {
+          category: category || null,
+          credit: categorizedAmount,
+          comment: null,
+          supplier: supplier || null
+        },
+        {
+          category: null,
+          credit: uncategorized.credit - categorizedAmount,
+          comment: uncategorized.comment,
+          supplier: null
+        }
+      ]
+        .filter((entry) => Object.keys(entry).length !== 0)
+        .filter((entry) => entry.credit !== 0)
+    };
+  }
+  
+  function canSubmit() {
+    return categorizedAmount !== 0 && validateAmount(categorizedAmount, getOperationCredit()) && (!!category || !!supplier);
+  }
+  
+  function submit() {
+    const newOperation = modifyOperation();
+    console.log(JSON.stringify(newOperation, null, 2));
+  }
 
   return (
     <Dialog
       open={open}
       onClose={handleClose}
     >
-      <DialogTitle>Assign category</DialogTitle>
+      <DialogTitle>New breakdown</DialogTitle>
       <DialogContent>
         <Stack direction="column" alignItems="center" spacing={2}>
           <Autocomplete
             size="small"
             fullWidth={true}
             loading={true}
-            options={['Essence', 'Péage']}
+            options={categories}
             renderInput={(parameters) =>
               <TextField
                 {...parameters}
@@ -86,41 +128,28 @@ function NewCategoryModal({open, onClose, operation, holders = []}) {
               )
             }
           </Stack>
-          <Divider flexItem textAlign="left" variant="middle">
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <BreakdownIcon fontSize="small" />
-              <Typography variant="overline">Breakdown</Typography>
-            </Stack>
-          </Divider>
-          <Stack direction="column" spacing={2}>
-            <SpeedDial
-              ariaLabel="Quick breakdown"
-              direction="right"
-              icon={<FlashOnIcon fontSize="small" />}
-              FabProps={{ size: 'small' }}
+          <FormControl fullWidth size="small">
+            <InputLabel id='supplier-label' shrink={!!supplier}>Supplier</InputLabel>
+            <Select
+              labelId='supplier-label'
+              label={!!supplier ? 'Supplier' : ''}
+              value={supplier}
+              onChange={(event) => handleSupplierChange(event.target.value)}
+              endAdornment={!!supplier ? <IconButton onClick={(event) => handleSupplierChange('')} sx={{ marginRight: '1.1ex' }}><CloseIcon fontSize="small" /></IconButton> : <></>}
             >
-              <SpeedDialAction name="Equivalent" tooltipTitle="Equivalent" icon={<ContrastIcon fontSize="small" />} />
               {holders.map((holder) =>
-                <SpeedDialAction name={'100% ' + holder.name} icon={<ContrastIcon fontSize="small" />} />
+                <MenuItem key={holder.id} value={holder.id}>{<Holder value={holder} size="small" />}</MenuItem>
               )}
-            </SpeedDial>
-            <SpeedDial
-              ariaLabel="Add an holder"
-              direction="right"
-              icon={<AddIcon fontSize="small" />}
-              FabProps={{ size: 'small' }}
-            >
-              <SpeedDialAction name="Equivalent" icon={<ContrastIcon fontSize="small" />} />
-            </SpeedDial>
-          </Stack>
+            </Select>
+          </FormControl>
         </Stack>
       </DialogContent>
       <DialogActions>
         <Button variant="outlined" color="secondary" onClick={handleClose} startIcon={<CancelIcon />}>Cancel</Button>
-        <Button variant="contained" disabled={categorizedAmount === 0 || !validateAmount(categorizedAmount, getOperationCredit()) || !category} startIcon={<SendIcon />}>Submit</Button>
+        <Button variant="contained" disabled={!canSubmit()} startIcon={<SendIcon />} onClick={submit}>Submit</Button>
       </DialogActions>
     </Dialog>
   );
 }
 
-export default NewCategoryModal;
+export default NewBreakdownModal;
