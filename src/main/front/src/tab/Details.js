@@ -1,8 +1,9 @@
-import Operation from '../component/Operation';
+import OperationRow from '../component/OperationRow';
 import { Box, LinearProgress, Paper, Stack, TableContainer, Table, TableRow, TableCell, TableHead, TableBody } from '@mui/material';
 import { useEffect, useState } from 'react';
 import configuration from '../Configuration';
 import SearchOperations from '../component/SearchOperations';
+import Operation from '../business/Operation';
 
 function Details() {
   const [initialized, setInitialized] = useState(false);
@@ -34,6 +35,7 @@ function Details() {
           throw new Error('Response status is ' + response.status);
         }
       })
+      .then(operations => operations.map(Operation.fromObject))
       .then(setOperations);
   }
   
@@ -88,7 +90,7 @@ function Details() {
           <TableBody>
             <LoadingAnimation initialized={initialized} />
             {operations.map(operation =>
-              <Operation
+              <OperationRow
                 key={'operation-' + operation.id}
                 operation={operation}
                 existingCategories={existingCategories}

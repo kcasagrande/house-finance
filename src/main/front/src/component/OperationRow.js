@@ -6,7 +6,7 @@ import OperationBreakdownTable from './OperationBreakdownTable';
 import OperationMethod from './OperationMethod';
 import amount from '../amount';
 
-function Operation({operation, existingCategories, onChange}) {
+function OperationRow({operation, existingCategories, onChange}) {
   const [open, setOpen] = React.useState(false);
   
   function groupByCategory(supplies) {
@@ -52,4 +52,4 @@ function Operation({operation, existingCategories, onChange}) {
   );
 }
 
-export default Operation;
+export default OperationRow;

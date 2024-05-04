@@ -33,7 +33,7 @@ function OperationBreakdownTable({operation, existingCategories}) {
         <TableRow key="header">
           <TableCell>
             <NewBreakdownModal open={openNewBreakdownModal} onClose={() => setOpenNewBreakdownModal(false)} operation={operation} categories={existingCategories} />
-            <IconButton onClick={() => setOpenNewBreakdownModal(true)}><AddCircle /></IconButton>
+            <IconButton onClick={() => setOpenNewBreakdownModal(true)} disabled={operation.unassignedCredit === 0}><AddCircle /></IconButton>
             Category
           </TableCell>
           <TableCell>Credit</TableCell>

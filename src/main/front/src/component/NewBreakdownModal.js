@@ -14,7 +14,7 @@ import CategoryName from './CategoryName';
 import Holder from './Holder';
 
 function NewBreakdownModal({open, onClose, operation, categories}) {
-  const [categorizedAmount, setCategorizedAmount] = useState(getOperationCredit());
+  const [categorizedAmount, setCategorizedAmount] = useState(operation.unassignedCredit);
   const [category, setCategory] = useState('');
   const [supplier, setSupplier] = useState(null);
   const holders = [{id: '6c34fb5c-a24d-4f93-9666-ceae62cc1a00', name: 'Orion'}, {id: 2, name: 'B'}, {id: 3, name: 'C'}];
@@ -35,14 +35,10 @@ function NewBreakdownModal({open, onClose, operation, categories}) {
     onClose(event);
   }
 
-  function getOperationCredit() {
-    return operation.breakdown.map((breakdown) => breakdown.credit).reduce((sum, element) => sum + element, 0);
-  }
-
-  function validateAmount(amount, operationCredit) {
+  function validateAmount(amount, unassignedCredit) {
     return (
-      Math.abs(operationCredit) - Math.abs(amount) >= 0 &&
-      Math.abs(operationCredit - amount) <= Math.abs(operationCredit)
+      Math.abs(unassignedCredit) - Math.abs(amount) >= 0 &&
+      Math.abs(unassignedCredit - amount) <= Math.abs(unassignedCredit)
     );
   }
   
@@ -71,7 +67,7 @@ function NewBreakdownModal({open, onClose, operation, categories}) {
   }
   
   function canSubmit() {
-    return categorizedAmount !== 0 && validateAmount(categorizedAmount, getOperationCredit()) && (!!category || !!supplier);
+    return categorizedAmount !== 0 && validateAmount(categorizedAmount, operation.unassignedCredit) && (!!category || !!supplier);
   }
   
   function submit() {
@@ -107,24 +103,17 @@ function NewBreakdownModal({open, onClose, operation, categories}) {
               label="Amount"
               value={categorizedAmount / 100}
               onChange={handleAmountChange}
-              error={!validateAmount(categorizedAmount, getOperationCredit())}
+              error={!validateAmount(categorizedAmount, operation.unassignedCredit)}
             />
+            <IconButton onClick={() => handleAmountChange(operation.unassignedCredit)}>
+              <KeyboardDoubleArrowLeftIcon />
+            </IconButton>
             {
-              validateAmount(categorizedAmount, getOperationCredit())
+              validateAmount(categorizedAmount, operation.unassignedCredit)
               ? (
-                <>
-                  <IconButton onClick={() => handleAmountChange(getOperationCredit())}>
-                    <KeyboardDoubleArrowLeftIcon />
-                  </IconButton>
-                  <Alert severity="info" sx={{ minWidth: 250 }}>{amount(getOperationCredit() - categorizedAmount)} will remain.</Alert>
-                </>
+                <Alert severity="info" sx={{ minWidth: 250 }}>{amount(operation.unassignedCredit - categorizedAmount)} will remain.</Alert>
               ) : (
-                <>
-                  <IconButton onClick={() => handleAmountChange(getOperationCredit())}>
-                    <KeyboardDoubleArrowLeftIcon />
-                  </IconButton>
-                  <Alert severity="error" sx={{ minWidth: 250 }}>{'Can\'t exceed ' + amount(getOperationCredit()) + '.'}</Alert>
-                </>
+                <Alert severity="error" sx={{ minWidth: 250 }}>{'Can\'t exceed ' + amount(operation.unassignedCredit) + '.'}</Alert>
               )
             }
           </Stack>
