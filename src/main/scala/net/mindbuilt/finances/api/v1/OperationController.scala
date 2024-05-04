@@ -49,15 +49,10 @@ class OperationController(
           }
       } yield response
 
-    case request @ PUT -> Root / OperationId(operation) / "breakdown" =>
+    case request @ PATCH -> Root / OperationId(operation) =>
       for {
         breakdown <- request.as[Seq[Breakdown]]
-        response <- operationService.breakDown(operation, breakdown)
-          .value
-          .flatMap {
-            case Left(throwable) => InternalServerError(throwable.getMessage)
-            case Right(_) => Ok(())
-          }
+        response <- operationService.breakDown(operation, breakdown).toEmptyResponse()
       } yield {
         response
       }

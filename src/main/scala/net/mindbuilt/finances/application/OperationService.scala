@@ -21,10 +21,5 @@ class OperationService(
     operationRepository.getAllCategories
     
   def breakDown(operationId: Operation.Id, breakdown: Seq[Breakdown]): EitherT[IO, Throwable, Unit] =
-    for {
-      operation <- operationRepository.getById(operationId)
-        .subflatMap(_.toRight(new NoSuchElementException("No operation with id %s".format(operationId))))
-        .map(_.withBreakdown(breakdown))
-      _ <- operationRepository.save(operation)
-    } yield ()
+    operationRepository.updateBreakdowns(operationId, breakdown)
 }

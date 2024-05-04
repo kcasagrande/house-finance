@@ -61,6 +61,9 @@ package object sqlite3
   def executeWithEffect(sql: String, namedParameters: NamedParameter*)(implicit connection: Connection): EitherT[IO, Throwable, Unit] =
     EitherT(IO.blocking(Try { SQL(sql).on(namedParameters: _*).execute() }.toEither.map(_ => ())))
     
+  def executeUpdateWithEffect(sql: String, namedParameters: NamedParameter*)(implicit connection: Connection): EitherT[IO, Throwable, Int] =
+    EitherT(IO.blocking(Try { SQL(sql).on(namedParameters: _*).executeUpdate() }.toEither))
+  
   def executeBatchWithEffect(sql: String, firstNamedParameters: Seq[NamedParameter], otherNamedParameters: Seq[NamedParameter]*)(implicit connection: Connection): EitherT[IO, Throwable, Array[Int]] =
     EitherT(IO.blocking(Try { BatchSql(sql, firstNamedParameters, otherNamedParameters:_*).execute() }.toEither))
 

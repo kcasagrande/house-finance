@@ -163,6 +163,61 @@ class OperationRepository(implicit val database: EitherT[IO, Throwable, Database
     }
   }
 
+  override def updateBreakdowns(operation: Operation.Id, breakdowns: Seq[Breakdown]): EitherT[IO, Throwable, Unit] = {
+    withConnection { implicit connection: Connection =>
+      (
+        for {
+          cardBreakdownDeleted <- executeUpdateWithEffect(
+            """DELETE FROM
+              |  "card_breakdown"
+              |WHERE "operation"={operation}
+              |""".stripMargin,
+            "operation" -> operation
+          )
+          checkBreakdownDeleted <- executeUpdateWithEffect(
+            """DELETE FROM
+              |  "check_breakdown"
+              |WHERE "operation"={operation}
+              |""".stripMargin,
+            "operation" -> operation
+          )
+          debitBreakdownDeleted <- executeUpdateWithEffect(
+            """DELETE FROM
+              |  "debit_breakdown"
+              |WHERE "operation"={operation}
+              |""".stripMargin,
+            "operation" -> operation
+          )
+          transferBreakdownDeleted <- executeUpdateWithEffect(
+            """DELETE FROM
+              |  "transfer_breakdown"
+              |WHERE "operation"={operation}
+              |""".stripMargin,
+            "operation" -> operation
+          )
+          method <- (cardBreakdownDeleted, checkBreakdownDeleted, debitBreakdownDeleted, transferBreakdownDeleted) match {
+            case (0, 0, 0, 0) => EitherT.leftT[IO, Unit](new NoSuchElementException("No breakdown found for operation %s".format(operation)))
+            case (_, 0, 0, 0) => EitherT.pure[IO, Throwable]("card")
+            case (0, _, 0, 0) => EitherT.pure[IO, Throwable]("check")
+            case (0, 0, _, 0) => EitherT.pure[IO, Throwable]("debit")
+            case (0, 0, 0, _) => EitherT.pure[IO, Throwable]("transfer")
+            case _ => EitherT.leftT[IO, Unit](new IllegalStateException("Breakdown found in multiple tables for operation %s, check the database state for data corruption".format(operation)))
+          }
+          query =
+            """INSERT INTO "%s_breakdown"("operation", "credit", "category", "comment", "supplier")
+              |VALUES({operation}, {credit}, {category}, {comment}, {supplier})
+              |""".stripMargin.format(method)
+          _ <- executeBatchWithEffect(
+            query,
+            breakdownToNamedParameters(operation, breakdowns.head),
+            breakdowns.tail.map(breakdownToNamedParameters(operation, _)): _*
+          )
+        } yield ()
+      )
+        .orRollback
+    }
+  }
+
   private[this] def saveCardOperation(operation: Operation.ByCard)(implicit connection: Connection): EitherT[IO, Throwable, Unit] =
     for {
       _ <- executeWithEffect(
@@ -235,7 +290,7 @@ class OperationRepository(implicit val database: EitherT[IO, Throwable, Database
   override def getById(id: Id): EitherT[IO, Throwable, Option[Operation]] =
     withConnection { implicit connection: Connection =>
       executeQueryWithEffect(
-        """SELECT * FROM "operation"
+        """SELECT *, "reference" AS "number" FROM "operation"
           |INNER JOIN "breakdown"
           |ON "operation"."type"="breakdown"."operation_type"
           |AND "operation"."id"="breakdown"."operation_id"

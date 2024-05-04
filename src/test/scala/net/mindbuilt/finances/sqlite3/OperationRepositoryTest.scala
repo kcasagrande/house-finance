@@ -11,7 +11,7 @@ import org.scalatest.EitherValues
 import org.scalatest.freespec.AsyncFreeSpecLike
 import org.scalatest.matchers.should.Matchers._
 
-import java.time.Month.AUGUST
+import java.time.Month.{AUGUST, DECEMBER, JANUARY}
 import java.util.UUID
 
 class OperationRepositoryTest
@@ -73,13 +73,14 @@ class OperationRepositoryTest
       Some(accounts(1).iban)
     )
   )
+  
   "OperationRepository" - {
     "should save many operations of different types and retrieve them by interval" in {
       val actual = withDatabase { implicit database: EitherT[IO, Throwable, Database] =>
         withStandardFixture { implicit database: EitherT[IO, Throwable, Database] =>
           val sut = new OperationRepository
           for {
-            _ <- operations.map(sut.save).foldLeft(IO.pure(())) { (io, result) => io <& result }
+            _ <- sut.save(operations)
             retrievedOperations <- sut.getByInterval(2023 - AUGUST - 1 to 2023 - AUGUST - 9)
           } yield {
             retrievedOperations
@@ -94,7 +95,7 @@ class OperationRepositoryTest
         withStandardFixture { implicit database: EitherT[IO, Throwable, Database] =>
           val sut = new OperationRepository
           for {
-            _ <- operations.map(sut.save).foldLeft(IO.pure(())) { (io, result) => io <& result }
+            _ <- sut.save(operations)
             retrievedOperation <- sut.getById(operations.head.id)
           } yield {
             retrievedOperation
@@ -109,7 +110,7 @@ class OperationRepositoryTest
         withStandardFixture { implicit database: EitherT[IO, Throwable, Database] =>
           val sut = new OperationRepository
           for {
-            _ <- operations.map(sut.save).foldLeft(IO.pure(())) { (io, result) => io <& result }
+            _ <- sut.save(operations)
             retrievedCategories <- sut.getAllCategories
           } yield {
             retrievedCategories
@@ -121,6 +122,106 @@ class OperationRepositoryTest
         "Restaurant",
         "Électricité"
       ))
+    }
+    
+    "updateBreakdowns" - {
+      
+      "should modify the breakdown of a card operation" in {
+        val newBreakdowns = Seq(
+          Operation.Breakdown(200.cents, Some("Maison"), None, Some(individualHolders(1).id)),
+          Operation.Breakdown(800.cents, Some("Alimentaire"), None, Some(individualHolders(0).id))
+        )
+        val operationId = operations.filter(_.isInstanceOf[Operation.ByCard]).head.id
+        val actual = withDatabase { implicit database: EitherT[IO, Throwable, Database] =>
+          withStandardFixture { implicit database: EitherT[IO, Throwable, Database] =>
+            val sut = new OperationRepository
+            for {
+              _ <- sut.save(operations)
+              _ <- sut.updateBreakdowns(operationId, newBreakdowns)
+              modifiedOperation <- sut.getById(operationId)
+            } yield modifiedOperation
+          }
+        }
+        actual.value.asserting(_.value.map(_.breakdown).getOrElse(Seq.empty[Operation.Breakdown]) should contain theSameElementsAs newBreakdowns)
+      }
+
+      "should modify the breakdown of a check operation" in {
+        val newBreakdowns = Seq(
+          Operation.Breakdown(200.cents, Some("Maison"), None, Some(individualHolders(1).id)),
+          Operation.Breakdown(800.cents, Some("Alimentaire"), None, Some(individualHolders(0).id))
+        )
+        val operationId = operations.filter(_.isInstanceOf[Operation.ByCheck]).head.id
+        val actual = withDatabase { implicit database: EitherT[IO, Throwable, Database] =>
+          withStandardFixture { implicit database: EitherT[IO, Throwable, Database] =>
+            val sut = new OperationRepository
+            for {
+              _ <- sut.save(operations)
+              _ <- sut.updateBreakdowns(operationId, newBreakdowns)
+              modifiedOperation <- sut.getById(operationId)
+            } yield modifiedOperation
+          }
+        }
+        actual.value.asserting(_.value.map(_.breakdown).getOrElse(Seq.empty[Operation.Breakdown]) should contain theSameElementsAs newBreakdowns)
+      }
+
+      "should modify the breakdown of a debit operation" in {
+        val newBreakdowns = Seq(
+          Operation.Breakdown(200.cents, Some("Maison"), None, Some(individualHolders(1).id)),
+          Operation.Breakdown(800.cents, Some("Alimentaire"), None, Some(individualHolders(0).id))
+        )
+        val operationId = operations.filter(_.isInstanceOf[Operation.ByDebit]).head.id
+        val actual = withDatabase { implicit database: EitherT[IO, Throwable, Database] =>
+          withStandardFixture { implicit database: EitherT[IO, Throwable, Database] =>
+            val sut = new OperationRepository
+            for {
+              _ <- sut.save(operations)
+              _ <- sut.updateBreakdowns(operationId, newBreakdowns)
+              modifiedOperation <- sut.getById(operationId)
+            } yield modifiedOperation
+          }
+        }
+        actual.value.asserting(_.value.map(_.breakdown).getOrElse(Seq.empty[Operation.Breakdown]) should contain theSameElementsAs newBreakdowns)
+      }
+
+      "should modify the breakdown of a transfer operation" in {
+        val newBreakdowns = Seq(
+          Operation.Breakdown(200.cents, Some("Maison"), None, Some(individualHolders(1).id)),
+          Operation.Breakdown(800.cents, Some("Alimentaire"), None, Some(individualHolders(0).id))
+        )
+        val operationId = operations.filter(_.isInstanceOf[Operation.ByTransfer]).head.id
+        val actual = withDatabase { implicit database: EitherT[IO, Throwable, Database] =>
+          withStandardFixture { implicit database: EitherT[IO, Throwable, Database] =>
+            val sut = new OperationRepository
+            for {
+              _ <- sut.save(operations)
+              _ <- sut.updateBreakdowns(operationId, newBreakdowns)
+              modifiedOperation <- sut.getById(operationId)
+            } yield modifiedOperation
+          }
+        }
+        actual.value.asserting(_.value.map(_.breakdown).getOrElse(Seq.empty[Operation.Breakdown]) should contain theSameElementsAs newBreakdowns)
+      }
+
+      "should not modify the breakdown of an operation when the operation ID is not found" in {
+        val badId = UUID.randomUUID()
+        val newBreakdowns = Seq(
+          Operation.Breakdown(200.cents, Some("Maison"), None, Some(individualHolders(1).id)),
+          Operation.Breakdown(800.cents, Some("Alimentaire"), None, Some(individualHolders(0).id))
+        )
+        val operationId = operations.filter(_.isInstanceOf[Operation.ByTransfer]).head.id
+        val actual = withDatabase { implicit database: EitherT[IO, Throwable, Database] =>
+          withStandardFixture { implicit database: EitherT[IO, Throwable, Database] =>
+            val sut = new OperationRepository
+            for {
+              _ <- sut.save(operations)
+              _ <- sut.updateBreakdowns(badId, newBreakdowns)
+              modifiedOperation <- sut.getById(operationId)
+            } yield modifiedOperation
+          }
+        }
+        actual.value.asserting(_.left.value shouldBe a[NoSuchElementException])
+      }
+
     }
   }
 }

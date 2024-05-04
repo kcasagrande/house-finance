@@ -14,7 +14,6 @@ import net.mindbuilt.finances.business.{Operation, Statement}
 import org.http4s.circe.jsonOf
 import org.http4s.dsl.io._
 import org.http4s.{DecodeFailure, DecodeResult, EntityDecoder, HttpRoutes, InvalidMessageBodyFailure, ParseFailure, QueryParamDecoder}
-import org.sqlite.SQLiteException
 
 import java.nio.charset.Charset
 
