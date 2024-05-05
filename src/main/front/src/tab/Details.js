@@ -1,18 +1,32 @@
 import OperationRow from '../component/OperationRow';
-import { Box, LinearProgress, Paper, Stack, TableContainer, Table, TableRow, TableCell, TableHead, TableBody } from '@mui/material';
+import { Box, LinearProgress, MenuItem, Paper, Select, Stack, TableContainer, Table, TableRow, TableCell, TableHead, TableBody } from '@mui/material';
 import { useEffect, useState } from 'react';
 import configuration from '../Configuration';
 import SearchOperations from '../component/SearchOperations';
 import Operation from '../business/Operation';
+import { fetchAccounts, fetchCategories, fetchHolders, fetchOperations } from '../application/fetch-data';
 
 function Details() {
   const [initialized, setInitialized] = useState(false);
   const [existingCategories, setExistingCategories] = useState([]);
+  const [accounts, setAccounts] = useState([]);
+  const [account, setAccount] = useState(null);
+  const [persons, setPersons] = useState([]);
   const [operations, setOperations] = useState([]);
+  
+  function trace(value) {
+    if(typeof value === 'object' || typeof value === 'array') {
+      console.log(JSON.stringify(value, null, 2));
+    } else {
+      console.log(value);
+    }
+    return value;
+  }
   
   useEffect(() => {
     if(!initialized) {
       Promise.all([
+        refreshAccounts(),
         refreshOperations(),
         refreshExistingCategories()
       ])
@@ -20,35 +34,43 @@ function Details() {
     }
   }, [initialized]);
   
+  useEffect(() => {
+    if(!!account) {
+      refreshPersons(account);
+    }
+  }, [account]);
+  
   function replaceOperation(operation) {
     console.log('Operation replacement not implemented yet.');
     setOperations(operations);
   }
   
+  function refreshAccounts() {
+    return fetchAccounts()
+      .then((accounts) => accounts.map((account) => {
+        Object.defineProperty(account, 'ibanAsString', {
+          get() {
+            return this.iban.countryCode + this.iban.checkDigits + this.iban.bban;
+          }
+        });
+        return account;
+      }))
+      .then(setAccounts);
+  }
+  
+  function refreshPersons(account) {
+    return fetchHolders(account.ibanAsString)
+      .then(setPersons);
+  }
+  
   function refreshOperations() {
-    return fetch(configuration.api + "/operations?from=2023-01-01&to=2023-12-31")
-      .then(response => {
-        if(response.ok) {
-          const json = response.json();
-          return json;
-        } else {
-          throw new Error('Response status is ' + response.status);
-        }
-      })
+    return fetchOperations()
       .then(operations => operations.map(Operation.fromObject))
       .then(setOperations);
   }
   
   function refreshExistingCategories() {
-    return fetch(configuration.api + "/operations/categories")
-      .then(response => {
-        if(response.ok) {
-          const json = response.json();
-          return json;
-        } else {
-          throw new Error('Response status is ' + response.status);
-        }
-      })
+    return fetchCategories()
       .then(categories => { return categories.toSorted((a, b) => a.localeCompare(b, configuration.locale)); })
       .then(setExistingCategories);
   }
@@ -71,6 +93,13 @@ function Details() {
     
   return (
     <Stack direction="column">
+      <Select value={account} onChange={(event) => setAccount(event.target.value)}>
+        {accounts.map((account) =>
+          <MenuItem key={account.ibanAsString} value={account}>
+            {account.ibanAsString + ' - ' + account.holder}
+          </MenuItem>
+        )}
+      </Select>
       <SearchOperations callback={setOperations} />
       <TableContainer component={Paper} id="operations">
         <Table aria-label="collapsible table" size="small">
@@ -94,6 +123,7 @@ function Details() {
                 key={'operation-' + operation.id}
                 operation={operation}
                 existingCategories={existingCategories}
+                holders={persons}
                 onChange={replaceOperation}
               />
             )}

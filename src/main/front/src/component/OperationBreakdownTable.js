@@ -4,7 +4,7 @@ import NewBreakdownModal from './NewBreakdownModal';
 import OperationBreakdownRow from './OperationBreakdownRow';
 import { AddCircle } from '@mui/icons-material';
 
-function OperationBreakdownTable({operation, existingCategories}) {
+function OperationBreakdownTable({operation, existingCategories, holders}) {
   const [openNewBreakdownModal, setOpenNewBreakdownModal] = useState(false);
 
   function groupByCategory(supplies) {
@@ -32,7 +32,7 @@ function OperationBreakdownTable({operation, existingCategories}) {
       <TableHead>
         <TableRow key="header">
           <TableCell>
-            <NewBreakdownModal open={openNewBreakdownModal} onClose={() => setOpenNewBreakdownModal(false)} operation={operation} categories={existingCategories} />
+            <NewBreakdownModal open={openNewBreakdownModal} onClose={() => setOpenNewBreakdownModal(false)} operation={operation} categories={existingCategories} holders={holders} />
             <IconButton onClick={() => setOpenNewBreakdownModal(true)} disabled={operation.unassignedCredit === 0}><AddCircle /></IconButton>
             Category
           </TableCell>

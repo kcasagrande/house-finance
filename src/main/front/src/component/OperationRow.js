@@ -6,7 +6,7 @@ import OperationBreakdownTable from './OperationBreakdownTable';
 import OperationMethod from './OperationMethod';
 import amount from '../amount';
 
-function OperationRow({operation, existingCategories, onChange}) {
+function OperationRow({operation, existingCategories, holders, onChange}) {
   const [open, setOpen] = React.useState(false);
   
   function groupByCategory(supplies) {
@@ -44,7 +44,7 @@ function OperationRow({operation, existingCategories, onChange}) {
         <TableCell style={{ paddingBottom: 0, paddingTop: 0}}></TableCell>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0}} colSpan="8">
           <Collapse in={open} timeout="auto" unmountOnExit>
-            <OperationBreakdownTable operation={operation} existingCategories={existingCategories} />
+            <OperationBreakdownTable operation={operation} existingCategories={existingCategories} holders={holders} />
           </Collapse>
         </TableCell>
       </TableRow>

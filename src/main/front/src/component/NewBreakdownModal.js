@@ -13,11 +13,10 @@ import AmountField from './AmountField';
 import CategoryName from './CategoryName';
 import Holder from './Holder';
 
-function NewBreakdownModal({open, onClose, operation, categories}) {
+function NewBreakdownModal({open, onClose, operation, categories, holders}) {
   const [categorizedAmount, setCategorizedAmount] = useState(operation.unassignedCredit);
   const [category, setCategory] = useState('');
-  const [supplier, setSupplier] = useState(null);
-  const holders = [{id: '6c34fb5c-a24d-4f93-9666-ceae62cc1a00', name: 'Orion'}, {id: 2, name: 'B'}, {id: 3, name: 'C'}];
+  const [supplier, setSupplier] = useState('');
 
   function handleAmountChange(value) {
     setCategorizedAmount(value);
