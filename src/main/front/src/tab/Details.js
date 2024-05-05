@@ -3,7 +3,6 @@ import { Box, LinearProgress, MenuItem, Paper, Select, Stack, TableContainer, Ta
 import { useEffect, useState } from 'react';
 import configuration from '../Configuration';
 import SearchOperations from '../component/SearchOperations';
-import Operation from '../business/Operation';
 import { fetchAccounts, fetchCategories, fetchHolders, fetchOperations } from '../application/fetch-data';
 
 function Details() {
@@ -13,15 +12,6 @@ function Details() {
   const [account, setAccount] = useState(null);
   const [persons, setPersons] = useState([]);
   const [operations, setOperations] = useState([]);
-  
-  function trace(value) {
-    if(typeof value === 'object' || typeof value === 'array') {
-      console.log(JSON.stringify(value, null, 2));
-    } else {
-      console.log(value);
-    }
-    return value;
-  }
   
   useEffect(() => {
     if(!initialized) {
@@ -65,7 +55,6 @@ function Details() {
   
   function refreshOperations() {
     return fetchOperations()
-      .then(operations => operations.map(Operation.fromObject))
       .then(setOperations);
   }
   

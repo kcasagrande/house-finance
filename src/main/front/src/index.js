@@ -5,6 +5,7 @@ import './index.css';
 import App from './App';
 import Import from './tab/Import';
 import Details from './tab/Details';
+import Reports from './tab/Reports';
 import reportWebVitals from './reportWebVitals';
 
 const router = createBrowserRouter([
@@ -19,6 +20,10 @@ const router = createBrowserRouter([
       {
         path: "details",
         element: <Details />
+      },
+      {
+        path: "reports",
+        element: <Reports />
       }
     ]
   }

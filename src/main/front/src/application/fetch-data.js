@@ -1,4 +1,5 @@
 import configuration from '../Configuration';
+import Operation from '../business/Operation';
 
 function fetchJson(url) {
   return fetch(configuration.api + url)
@@ -15,7 +16,8 @@ function fetchJson(url) {
 }
 
 function fetchOperations() {
-  return fetchJson('/operations?from=2023-01-01&to=2023-12-31');
+  return fetchJson('/operations?from=2023-01-01&to=2023-12-31')
+    .then(operations => operations.map(Operation.fromObject));
 }
 
 function fetchCategories() {

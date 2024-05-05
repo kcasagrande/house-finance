@@ -60,7 +60,7 @@ function App() {
                 </ListItemButton>
               </ListItem>
               <ListItem disablePadding>
-                <ListItemButton component={Link}>
+                <ListItemButton component={Link} to={`/reports`}>
                   <ListItemIcon>
                     <InsightsIcon />
                   </ListItemIcon>
