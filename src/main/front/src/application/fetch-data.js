@@ -15,8 +15,8 @@ function fetchJson(url) {
     });
 }
 
-function fetchOperations() {
-  return fetchJson('/operations?from=2023-01-01&to=2023-12-31')
+function fetchOperations(from = '2023-01-01', to = '2023-12-31') {
+  return fetchJson(`/operations?from=${from}&to=${to}`)
     .then(operations => operations.map(Operation.fromObject));
 }
 

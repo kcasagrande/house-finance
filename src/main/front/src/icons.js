@@ -1,4 +1,4 @@
-import { CallSplit, Category } from '@mui/icons-material';
+import { CallSplit, Category, Receipt } from '@mui/icons-material';
 
 function BreakdownIcon(props) {
   return (
@@ -12,7 +12,14 @@ function CategoryIcon(props) {
   );
 }
 
+function OperationIcon(props) {
+  return (
+    <Receipt {...props} />
+  );
+}
+
 export {
   BreakdownIcon,
-  CategoryIcon
+  CategoryIcon,
+  OperationIcon
 };

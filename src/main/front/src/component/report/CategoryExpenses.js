@@ -3,11 +3,12 @@ import { Stack } from '@mui/material';
 import { fetchOperations } from '../../application/fetch-data';
 import PieChart from '../../widget/PieChart';
 
-function CategoryExpenses({width=400, height=400}) {
+function CategoryExpenses({operations, width=400, height=400}) {
   const [initialized, setInitialized] = useState(false);
   const [creditOperations, setCreditOperations] = useState([]);
-  const [debitOperations, setDebitOperations] = useState([]);
   const [expensesByCategory, setExpensesByCategory] = useState({});
+  
+  const debitOperations = operations.filter((operation) => operation.credit <= 0);
   
   function trace(value) {
     if(typeof value === 'object' || typeof value === 'array') {
@@ -17,15 +18,6 @@ function CategoryExpenses({width=400, height=400}) {
     }
     return value;
   }
-  
-  useEffect(() => {
-    if(!initialized) {
-      fetchOperations()
-        .then((operations) => operations.filter((operation) => operation.credit <= 0))
-        .then(setDebitOperations)
-        .then(() => setInitialized(true));
-    }
-  }, [initialized]);
   
   useEffect(() => {
     setExpensesByCategory(groupExpensesByCategory(debitOperations));
@@ -66,8 +58,8 @@ function CategoryExpenses({width=400, height=400}) {
             value: -datum[1]
           };
         })}
-        width={800}
-        height={800}
+        width={width}
+        height={height}
       />
     </Stack>
   );

@@ -1,8 +1,8 @@
 import CategoryExpenses from '../component/report/CategoryExpenses';
 
-function Reports() {
+function Reports({operations}) {
   return (
-    <CategoryExpenses />
+    <CategoryExpenses operations={operations} />
   );
 }
 
