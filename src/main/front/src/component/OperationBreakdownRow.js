@@ -1,5 +1,5 @@
 import { TableCell, TableRow } from '@mui/material';
-import amount from '../amount';
+import { amount } from '../format';
 import CategoryName from './CategoryName';
 import OperationBreakdownSupply from './OperationBreakdownSupply';
 

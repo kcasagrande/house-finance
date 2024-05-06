@@ -1,6 +1,6 @@
 import { Alert, Autocomplete, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, IconButton, InputLabel, MenuItem, Select, Stack, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
-import amount from '../amount';
+import { amount } from '../format';
 import AddIcon from '@mui/icons-material/Add';
 import { BreakdownIcon } from '../icons';
 import CancelIcon from '@mui/icons-material/Cancel';

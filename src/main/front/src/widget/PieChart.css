@@ -1,0 +1,3 @@
+.pie-arc:hover {
+  filter: drop-shadow(0 0 3px grey);
+}

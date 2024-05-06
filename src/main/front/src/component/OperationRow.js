@@ -4,7 +4,7 @@ import { KeyboardArrowDown, KeyboardArrowRight } from '@mui/icons-material';
 import Category from './Category';
 import OperationBreakdownTable from './OperationBreakdownTable';
 import OperationMethod from './OperationMethod';
-import amount from '../amount';
+import { amount } from '../format';
 
 function OperationRow({operation, existingCategories, holders, onChange}) {
   const [open, setOpen] = React.useState(false);

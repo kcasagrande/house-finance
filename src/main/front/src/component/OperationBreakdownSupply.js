@@ -1,6 +1,6 @@
 import { Avatar, Chip, Tooltip } from '@mui/material';
 import { Cancel } from '@mui/icons-material';
-import amount from '../amount';
+import { amount } from '../format';
 
 function OperationBreakdownSupply({value}) {
   function handleDelete() {

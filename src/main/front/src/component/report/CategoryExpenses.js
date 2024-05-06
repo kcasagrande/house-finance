@@ -59,15 +59,15 @@ function CategoryExpenses({width=400, height=400}) {
   return (
     <Stack direction="column" alignItems="center" spacing={2}>
       <PieChart
-        colors={["magenta", "cyan"]}
+        colors={["cyan", "lightblue", "pink", "magenta"]}
         data={Object.entries(expensesByCategory).map((datum) => {
           return {
             name: datum[0],
             value: -datum[1]
           };
         })}
-        width={400}
-        height={400}
+        width={800}
+        height={800}
       />
     </Stack>
   );
