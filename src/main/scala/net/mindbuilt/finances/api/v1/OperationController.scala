@@ -7,6 +7,7 @@ import io.circe.syntax._
 import net.mindbuilt.finances.Cents
 import net.mindbuilt.finances.api.v1.OperationController._
 import net.mindbuilt.finances.application.OperationService
+import net.mindbuilt.finances.application.OperationService.SearchCriterion
 import net.mindbuilt.finances.business.Operation.Breakdown
 import net.mindbuilt.finances.business.{Holder, Iban, Operation}
 import org.http4s.circe.{CirceEntityEncoder, jsonOf}
@@ -24,7 +25,7 @@ class OperationController(
 {
   def apply(): HttpRoutes[IO] = HttpRoutes.of[IO] {
     case GET -> Root :? From(from) +& To(to) =>
-      operationService.getAllOperations(from, to)
+      operationService.search(Seq(from.map(SearchCriterion.From), to.map(SearchCriterion.To)).flatten)
         .value
         .flatMap {
           case Left(throwable) => InternalServerError(throwable.getMessage)
@@ -61,8 +62,8 @@ class OperationController(
 
 object OperationController {
   implicit val localDateQueryParamDecoder: QueryParamDecoder[LocalDate] = QueryParamDecoder[String].map(ISO_LOCAL_DATE.parse(_)).map(LocalDate.from)
-  private object From extends QueryParamDecoderMatcher[LocalDate]("from")
-  private object To extends QueryParamDecoderMatcher[LocalDate]("to")
+  private object From extends OptionalQueryParamDecoderMatcher[LocalDate]("from")
+  private object To extends OptionalQueryParamDecoderMatcher[LocalDate]("to")
   private object OperationId {
     def unapply(pathParameter: String): Option[Operation.Id] =
       Try(UUID.fromString(pathParameter)).toOption

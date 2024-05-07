@@ -4,6 +4,9 @@ import anorm.SqlParser._
 import anorm._
 import cats.data.EitherT
 import cats.effect.IO
+import net.mindbuilt.finances.Helpers._
+import net.mindbuilt.finances.application.OperationService
+import net.mindbuilt.finances.application.OperationService.SearchCriterion
 import net.mindbuilt.finances.business.Operation.{Breakdown, Id}
 import net.mindbuilt.finances.business.{LocalInterval, Operation}
 import net.mindbuilt.finances.sqlite3.OperationRepository._
@@ -12,7 +15,6 @@ import net.mindbuilt.finances.{IntToCents, business => port}
 import java.sql.Connection
 import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
 import scala.language.implicitConversions
-import net.mindbuilt.finances.Helpers._
 
 class OperationRepository(implicit val database: EitherT[IO, Throwable, Database])
   extends port.OperationRepository
@@ -137,6 +139,22 @@ class OperationRepository(implicit val database: EitherT[IO, Throwable, Database
         }
       )
 
+  override def search(criteria: Seq[_ <: OperationService.SearchCriterion]): EitherT[IO, Throwable, Seq[Operation]] =
+    withConnection { implicit connection: Connection =>
+      executeQueryWithEffect("""
+        |SELECT *, "reference" AS "number" FROM "operation" "o"
+        |INNER JOIN "breakdown" "b"
+        |ON "o"."id"="b"."operation_id"
+        |WHERE %s
+        |""".stripMargin
+        .format((criteria.map(_.clause) :+ "0=0")
+          .map("(%s)".format(_))
+          .mkString(" AND ")
+        ),
+        criteria.flatMap(_.namedParameters):_*
+      )(operationsParser)
+    }
+  
   override def save(operation: Operation): EitherT[IO, Throwable, Unit] = {
     withConnection { implicit connection: Connection =>
       (operation match {
@@ -298,22 +316,8 @@ class OperationRepository(implicit val database: EitherT[IO, Throwable, Database
         namedParameters(
           "id" -> id.toString
         ):_*
-     )(operationParser.*)
-        .map(_
-          .groupBy(_._1)
-          .map(entry => entry._1 -> entry._2.map(_._2)).toSet
-          .map { entry: (Operation, List[Breakdown]) => entry match {
-            case (Operation.ByCard(id, card, reference, label, operationDate, valueDate, accountDate, _), breakdown) =>
-              Operation.ByCard(id, card, reference, label, operationDate, valueDate, accountDate, breakdown)
-            case (Operation.ByCheck(id, account, number, label, operationDate, valueDate, accountDate, _), breakdown) =>
-              Operation.ByCheck(id, account, number, label, operationDate, valueDate, accountDate, breakdown)
-            case (Operation.ByDebit(id, account, reference, label, operationDate, valueDate, accountDate, _), breakdown) =>
-              Operation.ByDebit(id, account, reference, label, operationDate, valueDate, accountDate, breakdown)
-            case (Operation.ByTransfer(id, account, reference, label, operationDate, valueDate, accountDate, otherParty, _), breakdown) =>
-              Operation.ByTransfer(id, account, reference, label, operationDate, valueDate, accountDate, otherParty, breakdown)
-          }}
-          .headOption
-        )
+     )(operationsParser)
+        .map(_.headOption)
     }
 
   override def getAllCategories: EitherT[IO, Throwable, Set[String]] =
@@ -405,6 +409,23 @@ object OperationRepository {
         case "transfer" => transferOperationParser
       }
       
+  private val operationsParser: ResultSetParser[Seq[Operation]] =
+    operationParser.*
+      .map(_
+        .groupBy(_._1)
+        .map(entry => entry._1 -> entry._2.map(_._2)).toSeq
+        .map { entry: (Operation, List[Breakdown]) => entry match {
+          case (Operation.ByCard(id, card, reference, label, operationDate, valueDate, accountDate, _), breakdown) =>
+            Operation.ByCard(id, card, reference, label, operationDate, valueDate, accountDate, breakdown)
+          case (Operation.ByCheck(id, account, number, label, operationDate, valueDate, accountDate, _), breakdown) =>
+            Operation.ByCheck(id, account, number, label, operationDate, valueDate, accountDate, breakdown)
+          case (Operation.ByDebit(id, account, reference, label, operationDate, valueDate, accountDate, _), breakdown) =>
+            Operation.ByDebit(id, account, reference, label, operationDate, valueDate, accountDate, breakdown)
+          case (Operation.ByTransfer(id, account, reference, label, operationDate, valueDate, accountDate, otherParty, _), breakdown) =>
+            Operation.ByTransfer(id, account, reference, label, operationDate, valueDate, accountDate, otherParty, breakdown)
+        }}
+      )
+      
   private val cardOperationParser: RowParser[(Operation.ByCard, Breakdown)] =
     for {
       id <- uuid("id")
@@ -473,4 +494,39 @@ object OperationRepository {
     } yield {
       Operation.ByTransfer(id, account, reference, label, operationDate, valueDate, accountDate, otherParty, Seq.empty[Breakdown]) -> Breakdown(credit, category, comment, supplier)
     }
+    
+  trait WhereClauseWriter[C <: SearchCriterion] {
+    def namedParameters(criterion: C): Seq[NamedParameter]
+    def clause(criterion: C): String
+  }
+  
+  implicit class SearchCriterionWriteableAsWhereClause(criterion: SearchCriterion) {
+    def clause: String = criterion match {
+      case from: SearchCriterion.From => FromWhereClauseWriter.clause(from)
+      case to: SearchCriterion.To => ToWhereClauseWriter.clause(to)
+    }
+    
+    def namedParameters: Seq[NamedParameter] = criterion match {
+      case from: SearchCriterion.From => FromWhereClauseWriter.namedParameters(from)
+      case to: SearchCriterion.To => ToWhereClauseWriter.namedParameters(to)
+    }
+  }
+    
+  implicit object FromWhereClauseWriter extends WhereClauseWriter[SearchCriterion.From] {
+    override def namedParameters(criterion: SearchCriterion.From): Seq[NamedParameter] = Seq(
+      "from" -> ISO_LOCAL_DATE.format(criterion.date)
+    )
+
+    override def clause(criterion: SearchCriterion.From): String =
+      """"o"."value_date" >= {from} OR "o"."account_date" >= {from} OR "o"."operation_date" >= {from}"""
+  }
+  
+  implicit object ToWhereClauseWriter extends WhereClauseWriter[SearchCriterion.To] {
+    override def namedParameters(criterion: SearchCriterion.To): Seq[NamedParameter] = Seq(
+      "to" -> ISO_LOCAL_DATE.format(criterion.date)
+    )
+    
+    override def clause(criterion: SearchCriterion.To): String =
+      """"o"."value_date" <= {to} OR "o"."account_date" <= {to} OR "o"."operation_date" <= {to}"""
+  }
 }

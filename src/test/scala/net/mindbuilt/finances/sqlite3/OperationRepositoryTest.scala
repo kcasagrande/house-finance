@@ -3,6 +3,8 @@ package net.mindbuilt.finances.sqlite3
 import cats.data.EitherT
 import cats.effect.IO
 import cats.effect.testing.scalatest.AsyncIOSpec
+import net.mindbuilt.finances.application.OperationService.SearchCriterion
+import net.mindbuilt.finances.application.OperationService.SearchCriterion.{From, To}
 import net.mindbuilt.finances.business.LocalInterval.LocalIntervalBoundary
 import net.mindbuilt.finances.business.Operation
 import net.mindbuilt.finances.sqlite3.StandardFixture.{accounts, cards, individualHolders}
@@ -220,6 +222,70 @@ class OperationRepositoryTest
           }
         }
         actual.value.asserting(_.left.value shouldBe a[NoSuchElementException])
+      }
+
+    }
+    
+    "search" - {
+      
+      "should find all operations when no criteria are given" in {
+        val actual = withDatabase { implicit database: EitherT[IO, Throwable, Database] =>
+          withStandardFixture { implicit database: EitherT[IO, Throwable, Database] =>
+            val sut = new OperationRepository
+            for {
+              _ <- sut.save(operations)
+              retrievedOperations <- sut.search(Seq.empty)
+            } yield {
+              retrievedOperations
+            }
+          }
+        }
+        actual.value.asserting(_.value should contain theSameElementsAs operations)
+      }
+
+      "should find the correct operations when range criteria are given" in {
+        val actual = withDatabase { implicit database: EitherT[IO, Throwable, Database] =>
+          withStandardFixture { implicit database: EitherT[IO, Throwable, Database] =>
+            val sut = new OperationRepository
+            for {
+              _ <- sut.save(operations)
+              retrievedOperations <- sut.search(Seq(From(2023 - AUGUST - 5), To(2023 - AUGUST - 8)))
+            } yield {
+              retrievedOperations
+            }
+          }
+        }
+        actual.value.asserting(_.value should contain theSameElementsAs operations.take(3).takeRight(2))
+      }
+
+      "should find the correct operations when a start criterion is given" in {
+        val actual = withDatabase { implicit database: EitherT[IO, Throwable, Database] =>
+          withStandardFixture { implicit database: EitherT[IO, Throwable, Database] =>
+            val sut = new OperationRepository
+            for {
+              _ <- sut.save(operations)
+              retrievedOperations <- sut.search(Seq(From(2023 - AUGUST - 7)))
+            } yield {
+              retrievedOperations
+            }
+          }
+        }
+        actual.value.asserting(_.value should contain theSameElementsAs operations.takeRight(2))
+      }
+
+      "should find the correct operations when an end criterion is given" in {
+        val actual = withDatabase { implicit database: EitherT[IO, Throwable, Database] =>
+          withStandardFixture { implicit database: EitherT[IO, Throwable, Database] =>
+            val sut = new OperationRepository
+            for {
+              _ <- sut.save(operations)
+              retrievedOperations <- sut.search(Seq(To(2023 - AUGUST - 9)))
+            } yield {
+              retrievedOperations
+            }
+          }
+        }
+        actual.value.asserting(_.value should contain theSameElementsAs operations.take(3))
       }
 
     }
