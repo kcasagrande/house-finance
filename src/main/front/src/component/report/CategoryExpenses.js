@@ -1,27 +1,19 @@
-import { useEffect, useState } from 'react';
 import { Stack } from '@mui/material';
-import { fetchOperations } from '../../application/fetch-data';
 import PieChart from '../../widget/PieChart';
 
 function CategoryExpenses({operations, width=400, height=400}) {
-  const [initialized, setInitialized] = useState(false);
-  const [creditOperations, setCreditOperations] = useState([]);
-  const [expensesByCategory, setExpensesByCategory] = useState({});
-  
   const debitOperations = operations.filter((operation) => operation.credit <= 0);
+  const creditOperations = operations.filter((operation) => operation.credit > 0);
+  const expensesByCategory = groupExpensesByCategory(debitOperations);
   
   function trace(value) {
-    if(typeof value === 'object' || typeof value === 'array') {
+    if(typeof value === 'object' || Array.isArray(value)) {
       console.log(JSON.stringify(value, null, 2));
     } else {
       console.log(value);
     }
     return value;
   }
-  
-  useEffect(() => {
-    setExpensesByCategory(groupExpensesByCategory(debitOperations));
-  }, [debitOperations]);
   
   function groupBreakdownByCategory(breakdown) {
     return breakdown.reduce((categories, entry) => {

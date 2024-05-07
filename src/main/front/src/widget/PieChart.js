@@ -64,7 +64,7 @@ function PieChart({colors, data, padAngle = 0.01, width, height, name = (datum) 
       <g textAnchor="middle">
         {arcs
           .filter((arc) => arc.endAngle - arc.startAngle > 0.1)
-          .map((arc) => <SvgLabel arc={arc} />)
+          .map((arc) => <SvgLabel key={name(arc.data)} arc={arc} />)
         }
       </g>
     </svg>
