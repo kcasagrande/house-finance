@@ -1,7 +1,7 @@
 import './App.css';
 import React from 'react';
 import { Outlet, Link } from 'react-router-dom';
-import { AppBar, Box, Button, Drawer, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Stack, Toolbar, Typography } from '@mui/material';
+import { Alert, AppBar, Box, Button, Drawer, FormControl, IconButton, InputLabel, List, ListItem, ListItemButton, ListItemIcon, ListItemText, MenuItem, Select, Stack, Toolbar, Typography } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import InsightsIcon from '@mui/icons-material/Insights';
 import ManageSearchIcon from '@mui/icons-material/ManageSearch';
@@ -14,7 +14,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import 'dayjs/locale/fr';
 
-function App({operations}) {
+function App({operations, accounts, account, onAccountChange}) {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   
   return (
@@ -27,6 +27,23 @@ function App({operations}) {
           >
             <MenuIcon />
           </IconButton>
+          <FormControl variant="outlined">
+            <InputLabel id="account-label">Account</InputLabel>
+            <Select
+              labelId="account-label"
+              sx={{
+                width: 320
+              }}
+              size="small"
+              label="Account"
+              value={account}
+              onChange={onAccountChange}
+            >
+              {accounts.map((_account) =>
+                <MenuItem key={_account.ibanAsString} value={_account}>{_account.ibanAsString + " - " + _account.holder}</MenuItem>
+              )}
+            </Select>
+          </FormControl>
           <Typography>
             Currently working on {operations.length} operations.
           </Typography>
@@ -93,7 +110,15 @@ function App({operations}) {
           </List>
         </Box>
       </Drawer>
-      <Outlet />
+      {
+        !!account
+      ?
+        <Outlet />
+      :
+        <Stack direction="row" alignItems="center" justifyContent="center" useFlexGap>
+          <Alert severity="info">Please select an account above</Alert>
+        </Stack>
+      }
     </LocalizationProvider>
   );
 }

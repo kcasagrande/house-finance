@@ -2,9 +2,7 @@ import { Stack } from '@mui/material';
 import PieChart from '../../widget/PieChart';
 
 function CategoryExpenses({operations, width=400, height=400}) {
-  const debitOperations = operations.filter((operation) => operation.credit <= 0);
-  const creditOperations = operations.filter((operation) => operation.credit > 0);
-  const expensesByCategory = groupExpensesByCategory(debitOperations);
+  const expensesByCategory = groupExpensesByCategory(operations);
   
   function trace(value) {
     if(typeof value === 'object' || Array.isArray(value)) {

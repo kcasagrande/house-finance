@@ -37,19 +37,11 @@ function Details() {
   
   function refreshAccounts() {
     return fetchAccounts()
-      .then((accounts) => accounts.map((account) => {
-        Object.defineProperty(account, 'ibanAsString', {
-          get() {
-            return this.iban.countryCode + this.iban.checkDigits + this.iban.bban;
-          }
-        });
-        return account;
-      }))
       .then(setAccounts);
   }
   
   function refreshPersons(account) {
-    return fetchHolders(account.ibanAsString)
+    return fetchHolders(account)
       .then(setPersons);
   }
   

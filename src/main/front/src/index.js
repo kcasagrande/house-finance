@@ -1,4 +1,4 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App';
@@ -8,18 +8,48 @@ import Details from './tab/Details';
 import OperationsLoader from './tab/OperationsLoader';
 import Reports from './tab/Reports';
 import reportWebVitals from './reportWebVitals';
+import { fetchAccounts, fetchHolders } from './application/fetch-data';
+import Account from './business/Account';
 
 function Root() {
-  const [operations, setOperations] = React.useState([]);
+  const [initialized, setInitialized] = useState(false);
+  const [accounts, setAccounts] = useState([]);
+  const [account, setAccount] = useState('');
+  const [operations, setOperations] = useState([]);
+  const [holders, setHolders] = useState([]);
+
+  useEffect(() => {
+    if(!initialized) {
+      fetchAccounts()
+        .then(setAccounts)
+        .then(() => setInitialized(true));
+    }
+  }, [initialized]);
+  
+  useEffect(() => {
+    if(!!account) {
+      fetchHolders(account)
+        .then(setHolders);
+    }
+  }, [account]);
+
+  function onAccountChange(event) {
+    setAccount(event.target.value);
+    loadOperations([]);
+  }
+
+  function loadOperations(_operations) {
+    setOperations(_operations);
+  }
 
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<App operations={operations} />}>
-          <Route path="/load" element={<OperationsLoader onLoad={setOperations} />} />
+        <Route path="/" element={<App operations={operations} accounts={accounts} account={account} onAccountChange={onAccountChange} />}>
+          <Route path="/load" element={<OperationsLoader onLoad={loadOperations} />} />
           <Route path="/import" element={<Import />} />
           <Route path="/details" element={<Details operations={operations} />} />
-          <Route path="/reports" element={<Reports operations={operations} />} />
+          <Route path="/reports" element={<Reports operations={operations} holders={holders}/>} />
         </Route>
       </Routes>
     </BrowserRouter>

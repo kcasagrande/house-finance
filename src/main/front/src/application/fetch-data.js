@@ -1,4 +1,5 @@
 import configuration from '../Configuration';
+import Account from '../business/Account';
 import Operation from '../business/Operation';
 
 function fetchJson(url) {
@@ -25,11 +26,12 @@ function fetchCategories() {
 }
 
 function fetchAccounts() {
-  return fetchJson('/accounts');
+  return fetchJson('/accounts')
+    .then(accounts => accounts.map(Account.fromObject));
 }
 
 function fetchHolders(account) {
-  return fetchJson('/accounts/' + account + '/holders');
+  return fetchJson('/accounts/' + account.ibanAsString + '/holders');
 }
 
 export {
