@@ -12,11 +12,12 @@ import net.mindbuilt.finances.business.Operation.Breakdown
 import net.mindbuilt.finances.business.{Holder, Iban, Operation}
 import org.http4s.circe.{CirceEntityEncoder, jsonOf}
 import org.http4s.dsl.io._
-import org.http4s.{EntityDecoder, HttpRoutes, QueryParamDecoder}
+import org.http4s.{EntityDecoder, HttpRoutes, ParseFailure, QueryParamDecoder}
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
 import java.util.UUID
+import scala.language.implicitConversions
 import scala.util.Try
 
 class OperationController(
@@ -24,8 +25,8 @@ class OperationController(
 ) extends CirceEntityEncoder
 {
   def apply(): HttpRoutes[IO] = HttpRoutes.of[IO] {
-    case GET -> Root :? From(from) +& To(to) =>
-      operationService.search(Seq(from.map(SearchCriterion.From), to.map(SearchCriterion.To)).flatten)
+    case GET -> Root :? Account(account) +& From(from) +& To(to) =>
+      operationService.search(Seq(account.map(SearchCriterion.Account), from.map(SearchCriterion.From), to.map(SearchCriterion.To)).flatten)
         .value
         .flatMap {
           case Left(throwable) => InternalServerError(throwable.getMessage)
@@ -61,9 +62,15 @@ class OperationController(
 }
 
 object OperationController {
-  implicit val localDateQueryParamDecoder: QueryParamDecoder[LocalDate] = QueryParamDecoder[String].map(ISO_LOCAL_DATE.parse(_)).map(LocalDate.from)
+  implicit def tryToEitherParseFailure[T](tryT: Try[T]): Either[ParseFailure, T] =
+    tryT.toEither.left.map(throwable => ParseFailure(throwable.getClass.getSimpleName, throwable.getMessage))
+  implicit val localDateQueryParamDecoder: QueryParamDecoder[LocalDate] = QueryParamDecoder[String].emap(param => Try(ISO_LOCAL_DATE.parse(param))).map(LocalDate.from)
+  implicit val ibanQueryParamDecoder: QueryParamDecoder[Iban] = QueryParamDecoder[String].emap(Iban.fromString)
+  
   private object From extends OptionalQueryParamDecoderMatcher[LocalDate]("from")
   private object To extends OptionalQueryParamDecoderMatcher[LocalDate]("to")
+  private object Account extends OptionalQueryParamDecoderMatcher[Iban]("account")
+  
   private object OperationId {
     def unapply(pathParameter: String): Option[Operation.Id] =
       Try(UUID.fromString(pathParameter)).toOption

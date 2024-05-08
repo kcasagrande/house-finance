@@ -3,9 +3,8 @@ package net.mindbuilt.finances.application
 import cats.data.EitherT
 import cats.effect.IO
 import net.mindbuilt.finances.application.OperationService.SearchCriterion
-import net.mindbuilt.finances.business.LocalInterval.LocalIntervalBoundary
 import net.mindbuilt.finances.business.Operation.Breakdown
-import net.mindbuilt.finances.business.{Operation, OperationRepository}
+import net.mindbuilt.finances.business.{Iban, Operation, OperationRepository}
 
 import java.time.LocalDate
 
@@ -28,6 +27,7 @@ class OperationService(
 object OperationService {
   sealed trait SearchCriterion
   object SearchCriterion {
+    case class Account(iban: Iban) extends SearchCriterion
     case class From(date: LocalDate) extends SearchCriterion
     case class To(date: LocalDate) extends SearchCriterion
   }

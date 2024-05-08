@@ -502,16 +502,29 @@ object OperationRepository {
   
   implicit class SearchCriterionWriteableAsWhereClause(criterion: SearchCriterion) {
     def clause: String = criterion match {
+      case iban: SearchCriterion.Account => AccountWhereClauseWriter.clause(iban)
       case from: SearchCriterion.From => FromWhereClauseWriter.clause(from)
       case to: SearchCriterion.To => ToWhereClauseWriter.clause(to)
     }
     
     def namedParameters: Seq[NamedParameter] = criterion match {
+      case iban: SearchCriterion.Account => AccountWhereClauseWriter.namedParameters(iban)
       case from: SearchCriterion.From => FromWhereClauseWriter.namedParameters(from)
       case to: SearchCriterion.To => ToWhereClauseWriter.namedParameters(to)
     }
   }
     
+  implicit object AccountWhereClauseWriter extends WhereClauseWriter[SearchCriterion.Account] {
+    override def namedParameters(criterion: SearchCriterion.Account): Seq[NamedParameter] = Seq(
+      "account_country_code" -> criterion.iban.countryCode,
+      "account_check_digits" -> criterion.iban.checkDigits,
+      "account_bban" -> criterion.iban.bban
+    )
+
+    override def clause(criterion: SearchCriterion.Account): String =
+      """"o"."account_country_code" = {account_country_code} AND "o"."account_check_digits" = {account_check_digits} AND "o"."account_bban" = {account_bban}"""
+  }
+  
   implicit object FromWhereClauseWriter extends WhereClauseWriter[SearchCriterion.From] {
     override def namedParameters(criterion: SearchCriterion.From): Seq[NamedParameter] = Seq(
       "from" -> ISO_LOCAL_DATE.format(criterion.date)
