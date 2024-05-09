@@ -1,0 +1,11 @@
+.total {
+  font-style: italic;
+}
+
+table {
+  font-size: small;
+}
+
+tbody > tr:nth-of-type(odd) {
+  background-color: #eee;
+}
