@@ -16,7 +16,7 @@ function Reports({operations, holders}) {
         <CategoryExpenses operations={debitOperations} width={500} />
       </Grid>
       <Grid item xs>
-        <SuppliersRepartition operations={debitOperations} categories={['Alimentaire', 'Essence']} holders={holders} width={500} />
+        <SuppliersRepartition operations={debitOperations} holders={holders} width={500} />
       </Grid>
     </Grid>
   );
