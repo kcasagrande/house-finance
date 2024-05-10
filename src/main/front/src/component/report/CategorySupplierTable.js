@@ -48,7 +48,7 @@ function CategorySupplierTable({operations, holders}) {
         </TableRow>
         {Object.keys(data).toSorted().filter(category => !!category).map((category) =>
           <TableRow hover>
-            <TableCell key={category} align="right" variant="head">{category || 'Non catégorisé'}</TableCell>
+            <TableCell key={category} align="right" variant="head">{category.replace(' ', "\u00A0")}</TableCell>
             <AmountCell className="total" key={category + '-TOTAL'} value={Object.keys(data[category]).map((holder) => data[category]?.[holder] || 0).reduce(sum, 0)} />
             {holders.map((holder) =>
               <AmountCell key={category + '-' + holder.id} value={data?.[category]?.[holder.id] || 0} />
@@ -57,7 +57,7 @@ function CategorySupplierTable({operations, holders}) {
           </TableRow>
         )}
         <TableRow hover>
-          <TableCell key={''} align="right" variant="head">Non catégorisé</TableCell>
+          <TableCell key={''} align="right" variant="head">{'Non\u00A0catégorisé'}</TableCell>
           <AmountCell className="total" key={'-TOTAL'} value={Object.keys(data[''] || {}).map((holder) => data['']?.[holder] || 0).reduce(sum, 0)} />
           {holders.map((holder) =>
             <AmountCell key={'-' + holder.id} value={data?.['']?.[holder.id] || 0} />
