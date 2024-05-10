@@ -45,8 +45,7 @@ function Root() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<App operations={operations} accounts={accounts} account={account} onAccountChange={onAccountChange} />}>
-          <Route path="/load" element={<OperationsLoader onLoad={loadOperations} />} />
+        <Route path="/" element={<App operations={operations} accounts={accounts} account={account} onAccountChange={onAccountChange} onOperationsChange={loadOperations} />}>
           <Route path="/import" element={<Import />} />
           <Route path="/details" element={<Details operations={operations} />} />
           <Route path="/reports" element={<Reports operations={operations} holders={holders}/>} />
