@@ -23,7 +23,7 @@ function FieldSet({title, icon, children, ...props}) {
   );
 }
 
-function OperationsForm({onSubmit}) {
+function OperationsForm({account, onAccountChange, onSubmit}) {
   const [criteria, setCriteria] = useState({});
   const accounts = useContext(AccountsContext);
   
@@ -36,8 +36,18 @@ function OperationsForm({onSubmit}) {
     };
   }
   
+  function handleAccountChange(iban) {
+    setCriterion('account')(iban);
+    onAccountChange(iban);
+  }
+  
   function submit() {
     onSubmit(criteria);
+  }
+  
+  function reset() {
+    handleAccountChange('');
+    setCriteria([]);
   }
   
   return (
@@ -51,16 +61,16 @@ function OperationsForm({onSubmit}) {
           }}
           size="small"
           label="Account"
-          value={criteria['account'] || ''}
-          onChange={(event) => setCriterion('account')(event.target.value)}
+          value={account || ''}
+          onChange={(event) => handleAccountChange(event.target.value)}
         >
           {Object.keys(accounts).map((iban) =>
             <MenuItem key={iban} value={iban}>{iban + " - " + accounts[iban].holder}</MenuItem>
           )}
         </Select>
       </FormControl>
-      <Alert severity="info" sx={{ display: (!!criteria['account'] ? 'none' : '') }}>Please select an account first.</Alert>
-      <FieldSet title="Dates" icon={CalendarIcon} sx={{ display: (!criteria['account'] ? 'none' : '') }}>
+      <Alert severity="info" sx={{ display: (!!account ? 'none' : '') }}>Please select an account first.</Alert>
+      <FieldSet title="Dates" icon={CalendarIcon} sx={{ display: (!account ? 'none' : '') }}>
         <DayJsDatePicker
           value={criteria['from']}
           onChange={setCriterion('from')}
@@ -91,7 +101,7 @@ function OperationsForm({onSubmit}) {
       </FieldSet>
       <Stack direction="row" alignItems="center" justifyContent="center" spacing={2} useFlexGap>
         <Button variant="contained" startIcon={<SearchIcon />} onClick={submit}>Search</Button>
-        <Button variant="outlined" startIcon={<CloseIcon />} onClick={() => setCriteria({})}>Reset</Button>
+        <Button variant="outlined" startIcon={<CloseIcon />} onClick={reset}>Reset</Button>
       </Stack>
     </Stack>
   );

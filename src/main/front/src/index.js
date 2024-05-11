@@ -5,18 +5,18 @@ import App from './App';
 import { BrowserRouter, RouterProvider, Routes, Route } from 'react-router-dom';
 import Import from './tab/Import';
 import Details from './tab/Details';
-import OperationsLoader from './tab/OperationsLoader';
 import Reports from './tab/Reports';
 import reportWebVitals from './reportWebVitals';
 import { fetchAccounts, fetchHolders } from './application/fetch-data';
 import Account from './business/Account';
+import Operation from './business/Operation';
 import { AccountsContext } from './context/AccountsContext';
 
 function Root() {
   const [initialized, setInitialized] = useState(false);
   const [accounts, setAccounts] = useState([]);
-  const [account, setAccount] = useState('');
-  const [operations, setOperations] = useState([]);
+  const [account, _setAccount] = useState(JSON.parse(localStorage.getItem('account')) || '');
+  const [operations, _setOperations] = useState((JSON.parse(localStorage.getItem('operations')) || []).map(Operation.fromObject));
   const [holders, setHolders] = useState([]);
 
   useEffect(() => {
@@ -43,8 +43,18 @@ function Root() {
     }
   }, [account]);
 
-  function onAccountChange(event) {
-    setAccount(event.target.value);
+  function setOperations(operations) {
+    localStorage.setItem('operations', JSON.stringify(operations));
+    _setOperations(operations);
+  }
+
+  function setAccount(iban) {
+    localStorage.setItem('account', JSON.stringify(iban));
+    _setAccount(iban);
+  }
+
+  function onAccountChange(iban) {
+    setAccount(iban);
     loadOperations([]);
   }
 

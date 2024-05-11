@@ -122,7 +122,7 @@ function App({operations, account, onAccountChange, onOperationsChange}) {
           }}
         >
           <Typography variant="h2">Search operations</Typography>
-          <OperationsForm onSubmit={queryOperations} />
+          <OperationsForm account={account} onAccountChange={onAccountChange} onSubmit={queryOperations} />
         </Stack>
       </Drawer>
     </LocalizationProvider>
