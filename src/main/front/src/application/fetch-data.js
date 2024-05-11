@@ -16,8 +16,11 @@ function fetchJson(url) {
     });
 }
 
-function fetchOperations(from = '2023-01-01', to = '2023-12-31') {
-  return fetchJson(`/operations?from=${from}&to=${to}`)
+function fetchOperations(criteria) {
+  const queryParameters = Object.entries(criteria)
+    .map((entry) => entry[0] + '=' + entry[1])
+    .join('&');
+  return fetchJson(`/operations?${queryParameters}`)
     .then(operations => operations.map(Operation.fromObject));
 }
 
@@ -31,7 +34,7 @@ function fetchAccounts() {
 }
 
 function fetchHolders(account) {
-  return fetchJson('/accounts/' + account.ibanAsString + '/holders');
+  return fetchJson('/accounts/' + account + '/holders');
 }
 
 export {

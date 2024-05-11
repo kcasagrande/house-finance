@@ -16,12 +16,12 @@ import OperationsForm from './component/OperationsForm';
 import { fetchOperations } from './application/fetch-data';
 import 'dayjs/locale/fr';
 
-function App({operations, accounts, account, onAccountChange, onOperationsChange}) {
+function App({operations, account, onAccountChange, onOperationsChange}) {
   const [menuDrawerOpen, setMenuDrawerOpen] = React.useState(false);
   const [operationsDrawerOpen, setOperationsDrawerOpen] = React.useState(false);
   
   function queryOperations(criteria) {
-    fetchOperations(criteria['from'], criteria['to'])
+    fetchOperations(criteria)
       .then(onOperationsChange);
   }
 
@@ -37,23 +37,6 @@ function App({operations, accounts, account, onAccountChange, onOperationsChange
               <MenuIcon />
             </IconButton>
           </Tooltip>
-          <FormControl variant="outlined">
-            <InputLabel id="account-label">Account</InputLabel>
-            <Select
-              labelId="account-label"
-              sx={{
-                width: 320
-              }}
-              size="small"
-              label="Account"
-              value={account}
-              onChange={onAccountChange}
-            >
-              {accounts.map((_account) =>
-                <MenuItem key={_account.ibanAsString} value={_account}>{_account.ibanAsString + " - " + _account.holder}</MenuItem>
-              )}
-            </Select>
-          </FormControl>
           <Stack direction="row" alignItems="center" justifyContent="flex-end" spacing={2}>
             <Typography>
               Currently working on {operations.length} operations.
@@ -123,15 +106,7 @@ function App({operations, accounts, account, onAccountChange, onOperationsChange
           </List>
         </Box>
       </Drawer>
-      {
-        !!account
-      ?
-        <Outlet />
-      :
-        <Stack direction="row" alignItems="center" justifyContent="center" useFlexGap>
-          <Alert severity="info">Please select an account above</Alert>
-        </Stack>
-      }
+      <Outlet />
       <Drawer
         anchor="right"
         open={operationsDrawerOpen}

@@ -10,6 +10,7 @@ import Reports from './tab/Reports';
 import reportWebVitals from './reportWebVitals';
 import { fetchAccounts, fetchHolders } from './application/fetch-data';
 import Account from './business/Account';
+import { AccountsContext } from './context/AccountsContext';
 
 function Root() {
   const [initialized, setInitialized] = useState(false);
@@ -21,6 +22,15 @@ function Root() {
   useEffect(() => {
     if(!initialized) {
       fetchAccounts()
+        .then(accounts =>
+          accounts
+            .reduce((_accounts, _account) => {
+              return {
+                ..._accounts,
+                [_account.ibanAsString]: _account
+              }
+            }, {})
+        )
         .then(setAccounts)
         .then(() => setInitialized(true));
     }
@@ -43,15 +53,17 @@ function Root() {
   }
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<App operations={operations} accounts={accounts} account={account} onAccountChange={onAccountChange} onOperationsChange={loadOperations} />}>
-          <Route path="/import" element={<Import />} />
-          <Route path="/details" element={<Details operations={operations} />} />
-          <Route path="/reports" element={<Reports operations={operations} holders={holders}/>} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <AccountsContext.Provider value={accounts}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<App operations={operations} account={account} onAccountChange={onAccountChange} onOperationsChange={loadOperations} />}>
+            <Route path="/import" element={<Import />} />
+            <Route path="/details" element={<Details operations={operations} />} />
+            <Route path="/reports" element={<Reports operations={operations} holders={holders}/>} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AccountsContext.Provider>
   );
 }
 
