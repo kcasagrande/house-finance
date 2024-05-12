@@ -1,5 +1,5 @@
 import { Table, TableBody, TableCell, TableHead, TableRow, Tooltip } from '@mui/material';
-import { amount } from '../../format';
+import Amount from '../Amount';
 import './CategorySupplierTable.css';
 
 function dataReducer(_data, breakdown) {
@@ -49,7 +49,7 @@ function BalanceCell({balance = { debit: 0, credit: 0 }, ...props}) {
           backgroundImage: (isFull ? "linear-gradient(90deg, cyan, cyan)" : (isNull ? '' : `linear-gradient(90deg, lightgreen, ${percent}%, lightgray, ${percent}%, lightgray)`)),
         }}
       >
-        <span class="credit">{amount(balance.credit)}</span>/<span class="debit">{amount(balance.debit === 0 ? balance.debit : -balance.debit)}</span>
+        <Amount className="credit" value={balance.credit} />/<Amount className class="debit" value={(balance.debit === 0 ? balance.debit : -balance.debit)} />
       </TableCell>
     </Tooltip>
   );
