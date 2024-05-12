@@ -9,17 +9,13 @@ function Reports({operations, holders}) {
   const creditOperations = operations.filter((operation) => operation.credit > 0);
   
   return (
-    <Grid container columns={4} columnSpacing={2} sx={{ padding: '1em' }}>
-      <Grid item xs={1}>
-        <CategorySupplierTable operations={debitOperations} holders={holders}/>
-      </Grid>
-      <Grid item xs={3}>
-        <Stack direction="row" alignItems="center" justifyContent="center" spacing={2}>
-          <CategoryExpenses operations={debitOperations} width={400} />
-          <SuppliersRepartition operations={debitOperations} holders={holders} width={400} />
-        </Stack>
-      </Grid>
-    </Grid>
+    <Stack direction="row" alignItems="flex-start" justifyContent="center" spacing={2} sx={{ padding: '1em' }}>
+      <CategorySupplierTable operations={debitOperations} holders={holders}/>
+      <Stack direction="column" alignItems="center" justifyContent="flex-start" spacing={2}>
+        <CategoryExpenses operations={debitOperations} width={400} />
+        <SuppliersRepartition operations={debitOperations} holders={holders} width={400} />
+      </Stack>
+    </Stack>
   );
 }
 

@@ -3,7 +3,7 @@
 }
 
 table {
-  font-size: small;
+  font-size: smaller;
 }
 
 tbody > tr:nth-of-type(odd) {
