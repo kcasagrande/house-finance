@@ -3,9 +3,25 @@
 }
 
 table {
-  font-size: smaller;
+  max-width: 50%;
 }
 
-tbody > tr:nth-of-type(odd) {
-  background-color: #eee;
+td.balance:not(.null) > .credit {
+  color: darkgreen;
 }
+
+td.balance:not(.null) > .debit {
+  color: darkred;
+}
+
+td.balance {
+  background-size: 100% 75%;
+  background-repeat: no-repeat;
+  background-position: center;
+  box-shadow: 0 0 0 2px white inset;
+}
+
+td.balance.null {
+  color: lightgray;
+}
+

@@ -1,4 +1,4 @@
-import { Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
+import { Table, TableBody, TableCell, TableHead, TableRow, Tooltip } from '@mui/material';
 import { amount } from '../../format';
 import './CategorySupplierTable.css';
 
@@ -31,8 +31,27 @@ function dataReducer(_data, breakdown) {
 }
 
 function BalanceCell({balance = { debit: 0, credit: 0 }, ...props}) {
+  const percent = balance.debit === 0 ? 0 : balance.credit * 100 / -balance.debit;
+  const isNull = balance.debit === 0 && balance.credit === 0;
+  const isFull = balance.debit !== 0 && -balance.debit === balance.credit;
+  
   return (
-    <TableCell {...props} align="center">{amount(balance.debit) + '/' + amount(balance.credit)}</TableCell>
+    <Tooltip title={`${percent}%`}>
+      <TableCell
+        {...props}
+        className={
+          ['balance']
+            .concat(isNull ? ['null'] : [])
+            .join(' ')
+        }
+        align="center"
+        sx={{
+          backgroundImage: (isFull ? "linear-gradient(90deg, cyan, cyan)" : (isNull ? '' : `linear-gradient(90deg, lightgreen, ${percent}%, lightgray, ${percent}%, lightgray)`)),
+        }}
+      >
+        <span class="credit">{amount(balance.credit)}</span>/<span class="debit">{amount(balance.debit === 0 ? balance.debit : -balance.debit)}</span>
+      </TableCell>
+    </Tooltip>
   );
 }
 
