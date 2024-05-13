@@ -11,6 +11,7 @@ import { fetchAccounts, fetchHolders } from './application/fetch-data';
 import Account from './business/Account';
 import Operation from './business/Operation';
 import { AccountsContext } from './context/AccountsContext';
+import { HoldersContext } from './context/HoldersContext';
 
 function Root() {
   const [initialized, setInitialized] = useState(false);
@@ -53,26 +54,19 @@ function Root() {
     _setAccount(iban);
   }
 
-  function onAccountChange(iban) {
-    setAccount(iban);
-    loadOperations([]);
-  }
-
-  function loadOperations(_operations) {
-    setOperations(_operations);
-  }
-
   return (
     <AccountsContext.Provider value={accounts}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<App operations={operations} account={account} onAccountChange={onAccountChange} onOperationsChange={loadOperations} />}>
-            <Route path="/import" element={<Import />} />
-            <Route path="/details" element={<Details operations={operations} />} />
-            <Route path="/reports" element={<Reports operations={operations} holders={holders}/>} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <HoldersContext.Provider value={holders}>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<App operations={operations} onOperationsChange={setOperations} account={account} onAccountChange={setAccount} />}>
+              <Route path="/import" element={<Import />} />
+              <Route path="/details" element={<Details operations={operations} />} />
+              <Route path="/reports" element={<Reports operations={operations} holders={holders}/>} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </HoldersContext.Provider>
     </AccountsContext.Provider>
   );
 }

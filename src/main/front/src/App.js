@@ -13,18 +13,19 @@ import { OperationIcon } from './icons';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import OperationsForm from './component/OperationsForm';
-import { fetchOperations } from './application/fetch-data';
+import { fetchHolders, fetchOperations } from './application/fetch-data';
 import 'dayjs/locale/fr';
 
-function App({operations, account, onAccountChange, onOperationsChange}) {
+function App({account, onAccountChange, operations, onOperationsChange}) {
   const [menuDrawerOpen, setMenuDrawerOpen] = React.useState(false);
   const [operationsDrawerOpen, setOperationsDrawerOpen] = React.useState(false);
   
-  function queryOperations(criteria) {
+  function handleSubmit(criteria) {
     fetchOperations(criteria)
       .then(onOperationsChange);
+    onAccountChange(criteria['account']);
   }
-
+  
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="fr">
       <AppBar position="sticky">
@@ -122,7 +123,7 @@ function App({operations, account, onAccountChange, onOperationsChange}) {
           }}
         >
           <Typography variant="h2">Search operations</Typography>
-          <OperationsForm account={account} onAccountChange={onAccountChange} onSubmit={queryOperations} />
+          <OperationsForm onSubmit={handleSubmit} />
         </Stack>
       </Drawer>
     </LocalizationProvider>

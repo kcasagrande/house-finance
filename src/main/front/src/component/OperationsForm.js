@@ -1,5 +1,5 @@
 import { useContext, useState } from 'react';
-import { Alert, Box, Button, Divider, FormControl, InputLabel, MenuItem, Select, Slider, Stack, SvgIcon, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Divider, FormControl, FormHelperText, InputLabel, MenuItem, Select, Slider, Stack, SvgIcon, TextField, Typography } from '@mui/material';
 import BreakdownRepartition from './SearchOperations/BreakdownRepartition';
 import NoValueChooser from './SearchOperations/NoValueChooser';
 import DayJsDatePicker from '../widget/DayJsDatePicker';
@@ -23,7 +23,7 @@ function FieldSet({title, icon, children, ...props}) {
   );
 }
 
-function OperationsForm({account, onAccountChange, onSubmit}) {
+function OperationsForm({onSubmit}) {
   const [criteria, setCriteria] = useState({});
   const accounts = useContext(AccountsContext);
   
@@ -36,9 +36,8 @@ function OperationsForm({account, onAccountChange, onSubmit}) {
     };
   }
   
-  function handleAccountChange(iban) {
-    setCriterion('account')(iban);
-    onAccountChange(iban);
+  function canSubmit() {
+    return !!criteria['account'];
   }
   
   function submit() {
@@ -46,7 +45,6 @@ function OperationsForm({account, onAccountChange, onSubmit}) {
   }
   
   function reset() {
-    handleAccountChange('');
     setCriteria([]);
   }
   
@@ -61,16 +59,16 @@ function OperationsForm({account, onAccountChange, onSubmit}) {
           }}
           size="small"
           label="Account"
-          value={account || ''}
-          onChange={(event) => handleAccountChange(event.target.value)}
+          value={criteria['account'] || ''}
+          onChange={(event) => setCriterion('account')(event.target.value)}
         >
           {Object.keys(accounts).map((iban) =>
             <MenuItem key={iban} value={iban}>{iban + " - " + accounts[iban].holder}</MenuItem>
           )}
         </Select>
+        <FormHelperText required>Required</FormHelperText>
       </FormControl>
-      <Alert severity="info" sx={{ display: (!!account ? 'none' : '') }}>Please select an account first.</Alert>
-      <FieldSet title="Dates" icon={CalendarIcon} sx={{ display: (!account ? 'none' : '') }}>
+      <FieldSet title="Dates" icon={CalendarIcon}>
         <DayJsDatePicker
           value={criteria['from']}
           onChange={setCriterion('from')}
@@ -100,7 +98,7 @@ function OperationsForm({account, onAccountChange, onSubmit}) {
         />
       </FieldSet>
       <Stack direction="row" alignItems="center" justifyContent="center" spacing={2} useFlexGap>
-        <Button variant="contained" startIcon={<SearchIcon />} onClick={submit}>Search</Button>
+        <Button variant="contained" startIcon={<SearchIcon />} onClick={submit} disabled={!canSubmit()}>Search</Button>
         <Button variant="outlined" startIcon={<CloseIcon />} onClick={reset}>Reset</Button>
       </Stack>
     </Stack>

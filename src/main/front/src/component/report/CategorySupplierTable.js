@@ -1,4 +1,6 @@
+import { useContext } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableRow, Tooltip } from '@mui/material';
+import { HoldersContext } from '../../context/HoldersContext';
 import Amount from '../Amount';
 import { percent } from '../../format';
 import './CategorySupplierTable.css';
@@ -66,7 +68,8 @@ function BalanceCell({balance = { debit: 0, credit: 0 }, ...props}) {
   );
 }
 
-function CategorySupplierTable({operations, holders}) {
+function CategorySupplierTable({operations}) {
+  const holders = useContext(HoldersContext);
   const data = operations
     .flatMap((operation) => operation.breakdown)
     .reduce(dataReducer, {});
