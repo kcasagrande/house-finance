@@ -1,9 +1,14 @@
-.total {
+td.total {
   font-style: italic;
+  font-weight: bolder;
 }
 
 table {
   max-width: 50%;
+}
+
+td {
+  width: 1em;
 }
 
 td.balance:not(.null) > .credit {
@@ -19,6 +24,7 @@ td.balance {
   background-repeat: no-repeat;
   background-position: center;
   box-shadow: 0 0 0 2px white inset;
+  border-radius: 1em;
 }
 
 td.balance.null {

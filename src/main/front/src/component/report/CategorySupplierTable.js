@@ -1,5 +1,6 @@
 import { Table, TableBody, TableCell, TableHead, TableRow, Tooltip } from '@mui/material';
 import Amount from '../Amount';
+import { percent } from '../../format';
 import './CategorySupplierTable.css';
 
 function dataReducer(_data, breakdown) {
@@ -31,22 +32,32 @@ function dataReducer(_data, breakdown) {
 }
 
 function BalanceCell({balance = { debit: 0, credit: 0 }, ...props}) {
-  const percent = balance.debit === 0 ? 0 : balance.credit * 100 / -balance.debit;
+  const suppliedPercent = balance.debit === 0 ? 0 : balance.credit * 100 / -balance.debit;
+  const unsupplied = -balance.debit - balance.credit;
   const isNull = balance.debit === 0 && balance.credit === 0;
   const isFull = balance.debit !== 0 && -balance.debit === balance.credit;
   
   return (
-    <Tooltip title={`${percent}%`}>
+    <Tooltip
+      title={
+        <>
+          <div>{percent()(balance.debit === 0 ? 0 : balance.credit / -balance.debit)} supplied</div>
+          <div><Amount value={unsupplied} /> unsupplied</div>
+        </>
+      }
+    >
       <TableCell
         {...props}
         className={
-          ['balance']
+          (props.className || '').split(' ')
+            .concat(['balance'])
             .concat(isNull ? ['null'] : [])
             .join(' ')
         }
         align="center"
         sx={{
-          backgroundImage: (isFull ? "linear-gradient(90deg, cyan, cyan)" : (isNull ? '' : `linear-gradient(90deg, lightgreen, ${percent}%, lightgray, ${percent}%, lightgray)`)),
+          ...(props.sx || {}),
+          backgroundImage: (isFull ? "linear-gradient(90deg, cyan, cyan)" : (isNull ? '' : `linear-gradient(90deg, lightgreen, ${suppliedPercent}%, lightgray, ${suppliedPercent}%, lightgray)`)),
         }}
       >
         <Amount className="credit" value={balance.credit} />/<Amount className class="debit" value={(balance.debit === 0 ? balance.debit : -balance.debit)} />
@@ -88,7 +99,7 @@ function CategorySupplierTable({operations, holders}) {
             {holders.map((holder) =>
               <BalanceCell key={category + '-' + holder.id} balance={data?.[category]?.[holder.id]} />
             )}
-            <BalanceCell className="total" key={category + '-'} balance={data?.[category]?.['']} />
+            <BalanceCell key={category + '-'} balance={data?.[category]?.['']} />
           </TableRow>
         )}
         <TableRow key="" hover>
