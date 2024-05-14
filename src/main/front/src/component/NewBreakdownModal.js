@@ -1,5 +1,5 @@
 import { Alert, Autocomplete, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, IconButton, InputLabel, MenuItem, Select, Stack, TextField, Typography } from '@mui/material';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { amount } from '../format';
 import AddIcon from '@mui/icons-material/Add';
 import { BreakdownIcon } from '../icons';
@@ -12,8 +12,10 @@ import SendIcon from '@mui/icons-material/Send';
 import AmountField from './AmountField';
 import CategoryName from './CategoryName';
 import Holder from './Holder';
+import { HoldersContext } from '../context/HoldersContext';
 
-function NewBreakdownModal({open, onClose, operation, categories, holders}) {
+function NewBreakdownModal({open, onClose, operation, categories}) {
+  const holders = useContext(HoldersContext);
   const [categorizedAmount, setCategorizedAmount] = useState(operation.unassignedCredit);
   const [category, setCategory] = useState('');
   const [supplier, setSupplier] = useState('');
@@ -125,8 +127,8 @@ function NewBreakdownModal({open, onClose, operation, categories, holders}) {
               onChange={(event) => handleSupplierChange(event.target.value)}
               endAdornment={!!supplier ? <IconButton onClick={(event) => handleSupplierChange('')} sx={{ marginRight: '1.1ex' }}><CloseIcon fontSize="small" /></IconButton> : <></>}
             >
-              {holders.map((holder) =>
-                <MenuItem key={holder.id} value={holder.id}>{<Holder value={holder} size="small" />}</MenuItem>
+              {Object.keys(holders).map((holder) =>
+                <MenuItem key={holder} value={holder}>{<Holder value={holders[holder]?.name} size="small" />}</MenuItem>
               )}
             </Select>
           </FormControl>

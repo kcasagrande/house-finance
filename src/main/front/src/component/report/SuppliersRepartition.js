@@ -1,7 +1,10 @@
+import { useContext } from 'react';
 import { Stack } from '@mui/material';
 import PieChart from '../../widget/PieChart';
+import { HoldersContext } from '../../context/HoldersContext';
 
-function SuppliersRepartition({operations, holders, width=400, height=400}) {
+function SuppliersRepartition({operations, width=400, height=400}) {
+  const holders = useContext(HoldersContext);
   const breakdown = operations.flatMap(operation => operation.breakdown);
   const groups = breakdown
     .reduce((_groups, element) => {
@@ -17,7 +20,7 @@ function SuppliersRepartition({operations, holders, width=400, height=400}) {
         colors={["cyan", "lightblue", "pink", "magenta"]}
         data={Object.entries(groups).map((datum) => {
           return {
-            name: holders.find(holder => holder.id === datum[0])?.name || 'Non assigné',
+            name: holders[datum[0]]?.name || 'Non assigné',
             value: -datum[1]
           };
         })}

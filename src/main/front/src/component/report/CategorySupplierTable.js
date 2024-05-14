@@ -1,6 +1,8 @@
 import { useContext } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableRow, Tooltip } from '@mui/material';
 import { HoldersContext } from '../../context/HoldersContext';
+import CategoryName from '../CategoryName';
+import HolderName from '../HolderName';
 import Amount from '../Amount';
 import { percent } from '../../format';
 import './CategorySupplierTable.css';
@@ -62,7 +64,7 @@ function BalanceCell({balance = { debit: 0, credit: 0 }, ...props}) {
           backgroundImage: (isFull ? "linear-gradient(90deg, cyan, cyan)" : (isNull ? '' : `linear-gradient(90deg, lightgreen, ${suppliedPercent}%, lightgray, ${suppliedPercent}%, lightgray)`)),
         }}
       >
-        <Amount className="credit" value={balance.credit} />/<Amount className class="debit" value={(balance.debit === 0 ? balance.debit : -balance.debit)} />
+        <Amount className="credit" value={balance.credit} />/<Amount className="debit" value={(balance.debit === 0 ? balance.debit : -balance.debit)} />
       </TableCell>
     </Tooltip>
   );
@@ -80,8 +82,8 @@ function CategorySupplierTable({operations}) {
         <TableRow>
           <TableCell key="#"></TableCell>
           <TableCell className="total" key="*" align="center">TOTAL</TableCell>
-          {holders.map((holder) =>
-              <TableCell key={holder.id} align="center">{holder.name}</TableCell>
+          {Object.keys(holders).map((holder) =>
+              <TableCell key={holder} align="center"><HolderName id={holder} nonBreakable /></TableCell>
           )}
           <TableCell key="" align="center">Non assigné</TableCell>
         </TableRow>
@@ -90,26 +92,26 @@ function CategorySupplierTable({operations}) {
         <TableRow key="*" hover>
           <TableCell className="total" key="#" align="right" variant="head">TOTAL</TableCell>
           <BalanceCell className="total" key={'*-*'} balance={data?.['*']?.['*']} />
-          {holders.map((holder) =>
-            <BalanceCell className="total" key={'*-' + holder.id} balance={data?.['*']?.[holder.id]} />
+          {Object.keys(holders).map((holder) =>
+            <BalanceCell className="total" key={'*-' + holder} balance={data?.['*']?.[holder]} />
           )}
           <BalanceCell className="total" key={'*-'} balance={data?.['*']?.['']} />
         </TableRow>
         {Object.keys(data).toSorted().filter((category) => category !== '' && category !== '*').map((category) =>
           <TableRow key={category} hover>
-            <TableCell key="#" align="right" variant="head">{category.replace(' ', "\u00A0")}</TableCell>
+            <TableCell key="#" align="right" variant="head"><CategoryName value={category} justifyContent="flex-end" nonBreakable /></TableCell>
             <BalanceCell className="total" key={category + '-*'} balance={data?.[category]?.['*']} />
-            {holders.map((holder) =>
-              <BalanceCell key={category + '-' + holder.id} balance={data?.[category]?.[holder.id]} />
+            {Object.keys(holders).map((holder) =>
+              <BalanceCell key={category + '-' + holder} balance={data?.[category]?.[holder]} />
             )}
             <BalanceCell key={category + '-'} balance={data?.[category]?.['']} />
           </TableRow>
         )}
         <TableRow key="" hover>
-          <TableCell key={''} align="right" variant="head">{'Non\u00A0catégorisé'}</TableCell>
+          <TableCell key={''} align="right" variant="head"><CategoryName value={'Non catégorisé'} justifyContent="flex-end" nonBreakable /></TableCell>
           <BalanceCell className="total" key={'-*'} balance={data?.['']?.['*']} />
-          {holders.map((holder) =>
-            <BalanceCell key={'-' + holder.id} balance={data?.['']?.[holder.id]} />
+          {Object.keys(holders).map((holder) =>
+            <BalanceCell key={'-' + holder} balance={data?.['']?.[holder]} />
           )}
           <BalanceCell key={'-'} balance={data?.['']?.['']} />
         </TableRow>

@@ -40,6 +40,14 @@ function Root() {
   useEffect(() => {
     if(!!account) {
       fetchHolders(account)
+        .then((_holders) => _holders
+          .reduce((__holders, holder) => {
+            return {
+              ...__holders,
+              [holder.id]: holder
+            }
+          }, {})
+        )
         .then(setHolders);
     }
   }, [account]);

@@ -14,7 +14,7 @@ function Amount({value, currency, locale, ...props}) {
   
   return (
     <span {...props}>
-      {parts.map((part) => <span className={"currency-" + part.type}>{part.value}</span>)}
+      {parts.map((part, index) => <span key={'part-' + index} className={"currency-" + part.type}>{part.value}</span>)}
     </span>
   );
 }

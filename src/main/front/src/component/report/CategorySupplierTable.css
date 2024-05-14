@@ -1,4 +1,4 @@
-td.total {
+th.total, td.total {
   font-style: italic;
   font-weight: bolder;
 }
@@ -29,5 +29,9 @@ td.balance {
 
 td.balance.null {
   color: lightgray;
+}
+
+td:nth-of-type(1) {
+  padding-right: 1ex;
 }
 
