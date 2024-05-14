@@ -6,9 +6,9 @@ import OperationBreakdownSupply from './OperationBreakdownSupply';
 function OperationBreakdownRow({category, supplies}) {
   return (
     <TableRow key={category}>
-      <TableCell><CategoryName value={category} /></TableCell>
-      <TableCell>{amount(supplies.reduce((sum, supply) => sum + supply.credit, 0))}</TableCell>
-      <TableCell>{supplies.map(supply => <OperationBreakdownSupply value={supply} />)}</TableCell>
+      <TableCell key="category"><CategoryName value={category} /></TableCell>
+      <TableCell key="credit">{amount(supplies.reduce((sum, supply) => sum + supply.credit, 0))}</TableCell>
+      <TableCell key="holders">{supplies.map(supply => <OperationBreakdownSupply key={'supply-' + supply.supplier} value={supply} />)}</TableCell>
     </TableRow>
   );
 }

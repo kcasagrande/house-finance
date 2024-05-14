@@ -45,7 +45,7 @@ function OperationBreakdownTable({operation, existingCategories, holders}) {
           Object.entries(groupByCategory(operation.breakdown))
             .filter((entry) => !!entry[0])
             .map((entry) =>
-              <OperationBreakdownRow category={entry[0]} supplies={entry[1]} />
+              <OperationBreakdownRow key={'category-' + entry[0]} category={entry[0]} supplies={entry[1]} />
             )
         }
       </TableBody>
